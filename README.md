@@ -56,3 +56,6 @@
 >>SUSE:未测试<br />
 >>openSUSE：未测试<br />
 
+9.免责声明
+本软件是自由软件，遵循MIT协议。当用户违规使用本软件（包括但不限于违反Minecraft EULA，国际著作权法）时，产生的任何责任与Rubiginosu无关
+
