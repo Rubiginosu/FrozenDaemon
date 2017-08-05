@@ -1,7 +1,8 @@
 {
 	"ServerManager": {
 		"Servers": "../data/servers.json",
-		"Modules": "../data/modules"
+		"Modules": "../data/modules",
+		"WebSocketPort": 52024
 	},
 	"DaemonServer": {
 		"Port": 52023,

@@ -8,4 +8,5 @@
 include "FrozenGo.php";
 $fg = new FrozenGo("127.0.0.1",52023,"987IsA1MWIa68yQcvMfy");
 //print_r($fg->startServer(0));
-print_r($fg->inputToServer(0,"stop\n"));
+#print_r($fg->inputToServer(0,"stop"));
+print_r($fg->getServerList());

@@ -68,14 +68,16 @@ func (server *ServerLocal) Start() error {
 func (s *ServerRun)ProcessOutput() {
 	fmt.Println(s.Cmd.Process.Pid)
 	buf := bufio.NewReader(*s.StdoutPipe)
-	colorlog.LogPrint("NewReadered")
+	index := searchServerByID(s.ID)
+	go s.getServerStopped()
 	for {
-		colorlog.LogPrint("Foring")
+		if serverSaved[index].Status == 0 {
+			break
+		}
 		line, err := buf.ReadBytes('\n') //以'\n'为结束符读入一行
 		if err != nil || io.EOF == err {
 			break
 		}
-		colorlog.WarningPrint("Readed line")
 		fmt.Printf("%s",line)
 		s.processOutputLine(string(line)) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
@@ -86,6 +88,7 @@ func (s *ServerRun)ProcessOutput() {
 			}()
 		}
 	}
+	colorlog.LogPrint("Break for loop,server stopped or EOF. ")
 
 }
 
@@ -137,4 +140,10 @@ func searchRunningServerByID(id int) int {
 		}
 	}
 	return -1
+}
+
+func (s *ServerRun)getServerStopped(){
+	s.Cmd.Wait()
+	colorlog.PointPrint("Server Stopped")
+	serverSaved[searchServerByID(s.ID)].Status = 0
 }

@@ -13,8 +13,6 @@ import (
 
 func StartDaemonServer(conf conf.Config) {
 	config = conf
-	colorlog.PointPrint("Starting websocket server")
-	go webskt()
 	b, _ := ioutil.ReadFile(config.ServerManager.Servers)
 	err2 := json.Unmarshal(b, &serverSaved)
 

@@ -52,6 +52,8 @@ func main() {
 	colorlog.PointPrint("Starting Server Manager.")
 	go dmserver.StartDaemonServer(config)
 	go filetrans.ListenAndServe(config)
+	colorlog.PointPrint("Starting websocket server")
+	go dmserver.Webskt()
 	colorlog.PointPrint("Starting ValidationKeyUpdater.")
 	go auth.ValidationKeyUpdate(config.DaemonServer.ValidationKeyOutDateTimeSeconds)
 	colorlog.LogPrint("Done,type \"?\" for help. ")
