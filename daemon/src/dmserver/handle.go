@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"colorlog"
 )
 
 var config conf.Config
@@ -55,6 +56,7 @@ func handleConnection(c net.Conn) {
 func handleRequest(request Request) Response {
 	pairs := auth.GetValidationKeyPairs()
 	index := searchServerByID(request.OperateID)
+	colorlog.PointPrint("Recevied " + colorlog.ColorSprint(request.Method, colorlog.FR_GREEN) + " Command!")
 	switch request.Method {
 
 	case "List":
@@ -65,7 +67,14 @@ func handleRequest(request Request) Response {
 			serverId = serverSaved[len(serverSaved)-1].ID + 1
 		}
 
-		serverSaved = append(serverSaved, ServerLocal{serverId, request.Message, "", 0, 1024, 1024})
+		serverSaved = append(serverSaved, ServerLocal{
+			serverId,
+			request.Message,
+			"",
+			0,
+			1,
+			1024,
+			1024})
 		serverSaved[len(serverSaved)-1].EnvPrepare()
 		// 序列化b来储存。
 		b, err := json.MarshalIndent(serverSaved, "", "\t")
@@ -101,6 +110,9 @@ func handleRequest(request Request) Response {
 			return Response{
 				-1, "Invalid server id",
 			}
+		}
+		if serverSaved[index].Status != SERVER_STATUS_CLOSED {
+			return Response{-1,"Server Running or staring"}
 		}
 		err := serverSaved[index].Start()
 		if err == nil {
@@ -143,9 +155,9 @@ func handleRequest(request Request) Response {
 		auth.ValidationKeyPairs = append(auth.ValidationKeyPairs, pair)
 		return Response{0, string(responseData)}
 	case "ExecInstall":
-		fmt.Println("Recevied [ExecInstall] Command!")
-		fmt.Println("Try to auto install id:" + strconv.Itoa(request.OperateID))
-		fmt.Println("From " + request.Message)
+
+		colorlog.LogPrint("Try to auto install id:" + strconv.Itoa(request.OperateID))
+		colorlog.LogPrint("From " + request.Message)
 		conn, err := http.Get(request.Message + "?action=GetJar&JarID=" + strconv.Itoa(request.OperateID))
 		if err != nil {
 			fmt.Println("Get ExecInstallConfig error!")
@@ -187,6 +199,18 @@ func handleRequest(request Request) Response {
 			return Response{0, string(b)}
 		}
 
+		// 此方法将一行指令输入至服务端
+	case "InputLineToServer":
+		if index := searchRunningServerByID(request.OperateID);index >=0 {
+			err := servers[index].inputLine(request.Message)
+			if err != nil {
+				return Response{-1,err.Error()}
+			} else {
+				return Response{0,"Send OK"}
+			}
+		} else {
+			return Response{-1,"Invalid Server id"}
+		}
 	}
 	return Response{
 		-1, "Unexpected err",
@@ -215,4 +239,5 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 	//	}
 	//}
 	//return nil
+	return nil
 }

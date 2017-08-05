@@ -8,17 +8,12 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"os/exec"
+	"colorlog"
 )
 
 func StartDaemonServer(conf conf.Config) {
 	config = conf
-	os.MkdirAll("../.fgo_cgroups",700)
-	if _,err3 := os.Stat("/sys/fs/cgroups") ;err3 != nil {
-		autoMakeDir("/sys/fs/cgroups")
-		cmd := exec.Command("/bin/mount","-t","cgroups","cgroups","/sys/fs/cgroups")
-		cmd.Run()
-	}
+	colorlog.PointPrint("Starting websocket server")
 	go webskt()
 	b, _ := ioutil.ReadFile(config.ServerManager.Servers)
 	err2 := json.Unmarshal(b, &serverSaved)
@@ -33,7 +28,7 @@ func StartDaemonServer(conf conf.Config) {
 	} else {
 		for {
 			conn, err := ln.Accept()
-			fmt.Println("[Daemon]New Client Request send.From " + conn.LocalAddr().String())
+			fmt.Println(colorlog.ColorSprint("[Daemon]",colorlog.FR_CYAN),"New Client Request send.From " + conn.LocalAddr().String())
 			if err != nil {
 				continue
 			}

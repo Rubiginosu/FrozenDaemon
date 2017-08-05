@@ -190,6 +190,9 @@ class FrozenGo
         return $this->SockResult("SetServerConfig", $id, json_encode($elements));
     }
 
+    public function inputToServer($id,$message){
+        return $this->SockResult("InputLineToServer",$id,$message."\n");
+    }
 
     private function SockResult($method, $operateId = 0, $message = "")
     {

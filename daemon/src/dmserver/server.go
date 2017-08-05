@@ -9,25 +9,35 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"colorlog"
 )
 
 // 服务器状态码
 // 已经关闭
-//const SERVER_STATUS_CLOSED = 0
-const SERVER_STATUS_RUNNING = 1
+const(
+	SERVER_STATUS_CLOSED = iota
+	SERVER_STATUS_RUNNING
+	SERVER_STATUS_STATING
+)
+
 
 func (s *ServerRun) Close() {
 
 }
 
 func (server *ServerLocal) Start() error {
-	server.EnvPrepare()
-	execConf, err0 := server.loadExecutableConfig()
-	if err0 != nil {
-		return err0
-	}
-	cmd := exec.Command("./server", "-uid="+strconv.Itoa(config.DaemonServer.UserId), "-mem="+strconv.Itoa(server.MaxMemory), "-chr="+"../servers/server"+strconv.Itoa(server.ID), "-cmd="+execConf.Command)
 
+	//server.EnvPrepare()
+	//execConf, err0 := server.loadExecutableConfig()
+	//if err0 != nil {
+	//	return err0
+	//}
+
+	//cmd := exec.Command("./server", "-uid="+strconv.Itoa(config.DaemonServer.UserId), "-mem="+strconv.Itoa(server.MaxMem), "-chr="+"../servers/server"+strconv.Itoa(server.ID), "-cmd="+execConf.Command)
+
+	//#########Testing###########
+	cmd := exec.Command("/usr/bin/java","-jar","/root/test/server/mc.jar")
+	cmd.Dir = "/root/test/server/"
 	stdoutPipe, err := cmd.StdoutPipe()
 
 	if err != nil {
@@ -47,6 +57,7 @@ func (server *ServerLocal) Start() error {
 		&stdoutPipe,
 	})
 	err3 := cmd.Start()
+	server.Status = SERVER_STATUS_STATING
 	if err3 != nil {
 		return err3
 	}
@@ -57,15 +68,17 @@ func (server *ServerLocal) Start() error {
 func (s *ServerRun)ProcessOutput() {
 	fmt.Println(s.Cmd.Process.Pid)
 	buf := bufio.NewReader(*s.StdoutPipe)
-
+	colorlog.LogPrint("NewReadered")
 	for {
+		colorlog.LogPrint("Foring")
 		line, err := buf.ReadBytes('\n') //以'\n'为结束符读入一行
 		if err != nil || io.EOF == err {
 			break
 		}
-		//fmt.Printf("%s",line)
-		//s.processOutputLine(string(line)) // string对与正则更加友好吧
-		s.ToOutput.IsOutput = true
+		colorlog.WarningPrint("Readed line")
+		fmt.Printf("%s",line)
+		s.processOutputLine(string(line)) // string对与正则更加友好吧
+		//s.ToOutput.IsOutput = true
 		if s.ToOutput.IsOutput{
 			s.ToOutput.To = make(chan []byte,100)
 			go func (){

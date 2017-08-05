@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"path/filepath"
+	"colorlog"
 )
 
 // 按照错误码准备环境
@@ -17,7 +17,7 @@ func (server *ServerLocal) EnvPrepare() error{
 	// 文件夹不存在则创建文件夹
 	autoMakeDir(serverDataDir + "/serverData")
 
-	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil { //检查loop回环文件是否存在，如果不存在则创建
+	if /*_, err0 := os.Stat(serverDataDir + ".loop"); /*err0 != nil*/false { //检查loop回环文件是否存在，如果不存在则创建
 		fmt.Println("No loop file found!")
 		//  新增 loop
 		if server.MaxHardDisk == 0 {
@@ -42,33 +42,28 @@ func (server *ServerLocal) EnvPrepare() error{
 		}
 
 	}
-	fmt.Println("Preparing server data dir.")
+	//fmt.Println("Preparing server data dir.")
 	// 为挂载文件夹做好准备
-	autoMakeDir(serverDataDir + "/lib")
-	autoMakeDir(serverDataDir + "/execPath")
-	execPath,_ := filepath.Abs("../exec")
-	cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
-	cmd2.Run()
-	if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
-		autoMakeDir(serverDataDir + "/lib64")
-		// 这个谁说的准？ 哈哈～
-	}
-	// 挂载回环文件
-	fmt.Println("Mounting loop file")
-	cmd := exec.Command("/bin/mount", "-o", "loop",serverDataDir+"/server" + strconv.Itoa(server.ID) + ".loop", serverDataDir)
-	cmd.Run()
-
-	err := server.mountDirs() // 挂载其他文件
-	if err != nil {
-		fmt.Println("[ERROR]" + err.Error())
-	}
+	//autoMakeDir(serverDataDir + "/lib")
+	//autoMakeDir(serverDataDir + "/execPath")
+	//execPath,_ := filepath.Abs("../exec")
+	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
+	//cmd2.Run()
+	//if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
+	//	autoMakeDir(serverDataDir + "/lib64")
+	//	// 这个谁说的准？ 哈哈～
+	//}
+	//// 挂载回环文件
+	//fmt.Println("Mounting loop file")
+	//cmd := exec.Command("/bin/mount", "-o", "loop",serverDataDir+"/server" + strconv.Itoa(server.ID) + ".loop", serverDataDir)
+	//cmd.Run()
+	//
+	//err := server.mountDirs() // 挂载其他文件
+	//if err != nil {
+	//	fmt.Println("[ERROR]" + err.Error())
+	//}
 	// 挂载结束
 	///////////////////////////////////////////////////////////
-	// Cgroups配置
-	// 新建Groups
-	autoMakeDir("/sys/fs/cgroups/cpuset/" + strconv(server.ID))
-	autoMakeDir("/sys/fs/cgroups/memory/" + strconv(server.ID))
-	cmdEchoCpuset := exec.Command("/bin/echo","")
 	return nil
 }
 
@@ -133,7 +128,7 @@ func mountDirs(dirs []string, serverDataDir string) {
 }
 
 func mountDir(dir, serverDataDir string) {
-	fmt.Printf("Mounting Dir:%s\n",dir)
+	colorlog.LogPrint(fmt.Sprintf("Mounting Dir:%s\n",dir))
 	autoMakeDir(serverDataDir + dir)
 	cmd := exec.Command("/bin/mount", "-o", "bind", dir, serverDataDir+dir)
 	cmd.Run()

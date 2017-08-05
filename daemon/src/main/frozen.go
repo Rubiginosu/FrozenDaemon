@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"colorlog"
 )
 
 const VERSION string = "v0.3.1"
@@ -27,33 +28,33 @@ func main() {
 		printInfo()
 	} // 如果需要调试本程序，那么加上-jump参数可以跳过打印.
 	if !isRoot() {
-		// 如果被判定有root权限，则结束程序(安全性考虑)
-		fmt.Println("Root permission needed!")
+		fmt.Println(colorlog.ColorSprint("Need root permission.",colorlog.FR_RED))
 		return
 	}
-	fmt.Println("Loading config file...")
+	colorlog.LogPrint("Reading config file")
 	config, _ = conf.GetConfig(FILE_CONFIGURATION)
-	fmt.Println("Config get done.")
+	colorlog.LogPrint("Configuration get done")
+	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {
-		fmt.Println(err)
+		colorlog.ErrorPrint(err)
 	} else {
-		fmt.Println("Version Check done:")
+		colorlog.LogPrint("Version Check done:")
 		if versionCode > 1 {
-			fmt.Println("|---Daemon out of date")
-			fmt.Println("|---Your daemon need to be updated!")
+			colorlog.WarningPrint("|---Daemon out of date")
+			colorlog.WarningPrint("|---Your daemon need to be updated!")
 			return
 		} else if versionCode == 1 {
-			fmt.Println("Small bugs fixed,You choose to updated it or not.")
+			colorlog.WarningPrint("Small bugs fixed,You choose to updated it or not.")
 		} else {
-			fmt.Println("Lastest Version")
+			colorlog.LogPrint("Lastest Version")
 		}
 	}
-	fmt.Println("Starting Server Manager.")
+	colorlog.PointPrint("Starting Server Manager.")
 	go dmserver.StartDaemonServer(config)
 	go filetrans.ListenAndServe(config)
-	fmt.Println("Starting ValidationKeyUpdater.")
+	colorlog.PointPrint("Starting ValidationKeyUpdater.")
 	go auth.ValidationKeyUpdate(config.DaemonServer.ValidationKeyOutDateTimeSeconds)
-	fmt.Println("Done,type \"?\" for help. ")
+	colorlog.LogPrint("Done,type \"?\" for help. ")
 	for {
 		var s string
 		fmt.Scanf("%s", &s)
@@ -62,7 +63,7 @@ func main() {
 }
 
 func printInfo() {
-	fmt.Println(`
+	fmt.Println(colorlog.ColorSprint(`
 
     ______                                ______
    / ____/_____ ____  ____  ___   ____   / ____/____
@@ -71,21 +72,21 @@ func printInfo() {
 /_/    /_/    \____/ /___/\___//_/ /_/ \____/ \____/
 
 
-	`)
+	`,colorlog.FR_CYAN))
 	time.Sleep(2 * time.Second)
 	fmt.Println("---------------------")
 	time.Sleep(100 * time.Microsecond)
 	fmt.Print("Powered by ")
 	for _, v := range []byte("Axoford12") {
 		time.Sleep(240 * time.Millisecond)
-		fmt.Print(string(v))
+		fmt.Print(colorlog.ColorSprint(string(v),colorlog.BK_GREEN))
 	}
 	fmt.Println()
 	time.Sleep(1000 * time.Millisecond)
 	time.Sleep(100 * time.Microsecond)
 	fmt.Println("---------------------")
 	time.Sleep(300 * time.Millisecond)
-	fmt.Println("version:" + VERSION)
+	colorlog.LogPrint("version:" + VERSION)
 	time.Sleep(1 * time.Second)
 }
 
@@ -118,8 +119,8 @@ func isRoot() bool {
 	return userId == 0
 }
 func checkUpdate() (int, error) {
-	fmt.Println("Starting Version check...")
-	fmt.Println("This may take more time..")
+	colorlog.LogPrint("Starting Version check...")
+	colorlog.LogPrint("This may take more time..")
 	resp, err := http.Get(UPDATE_CURRENT_VERSION)
 	if err != nil {
 		return -2, err
