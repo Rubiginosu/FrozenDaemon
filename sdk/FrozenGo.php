@@ -190,8 +190,28 @@ class FrozenGo
         return $this->SockResult("SetServerConfig", $id, json_encode($elements));
     }
 
+    /**
+     * @param $id
+     * 要输入的服务器
+     * @param $message
+     * 输入的命令，如stop
+     * say Poi!
+     * 都可以,随便大家玩
+     * @return mixed|string
+     * 返回daemon的提示结果
+     */
     public function inputToServer($id,$message){
         return $this->SockResult("InputLineToServer",$id,$message."\n");
+    }
+
+    /**
+     * @param $id
+     * 服务器id
+     */
+    public function getOnlinePlayers($id){
+        $result = $this->SockResult("GetServerPlayers",$id);
+        $result->Message = json_decode($result->Message);
+        print_r($result);
     }
 
     private function SockResult($method, $operateId = 0, $message = "")
