@@ -1,7 +1,7 @@
 # FrozenGo Daemon 安装手册
 ## 安装依赖
 1.cgroup
-debian/other:apt-get -y install cgroup-bin
+debian/other:apt-get -y install cgroup-bin<br />
 centos:yum -y install libcgroup
 ## 安装步骤
 1.请先到[Releases](https://github.com/Rubiginosu/frozen-go/releases)下载您所希望的FrozenGo版本<br />
