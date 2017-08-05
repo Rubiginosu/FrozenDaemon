@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"colorlog"
+	"github.com/gorilla/websocket"
 )
 
 // 服务器状态码
@@ -50,7 +51,6 @@ func (server *ServerLocal) Start() error {
 	}
 	servers = append(servers,ServerRun{
 		server.ID,
-		OutputInfo{false,nil},
 		nil,
 		cmd,
 		&stdinPipe,
@@ -78,14 +78,12 @@ func (s *ServerRun)ProcessOutput() {
 		if err != nil || io.EOF == err {
 			break
 		}
-		fmt.Printf("%s",line)
+		//fmt.Printf("%s",line)
 		s.processOutputLine(string(line)) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
-		if s.ToOutput.IsOutput{
-			s.ToOutput.To = make(chan []byte,100)
-			go func (){
-				s.ToOutput.To <- line
-			}()
+		if isOut,to := IsOutput(s.ID);isOut{
+			//colorlog.LogPrint("Trying to send line to channel.")
+			to.WriteMessage(websocket.TextMessage,line)
 		}
 	}
 	colorlog.LogPrint("Break for loop,server stopped or EOF. ")

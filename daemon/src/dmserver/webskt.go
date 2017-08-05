@@ -7,37 +7,38 @@ import (
 	"colorlog"
 	"time"
 )
+var OutputMaps = make(map[int]*websocket.Conn,0)
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
-var upgrader = websocket.Upgrader{}
-func Webskt(){
-	http.HandleFunc("/",handler)
-	http.ListenAndServe(":" + strconv.Itoa(config.ServerManager.WebSocketPort),nil)
+func Webskt() {
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":"+strconv.Itoa(config.ServerManager.WebSocketPort), nil)
 
 }
-func handler(w http.ResponseWriter,r *http.Request){
+func handler(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		colorlog.ErrorPrint(err)
 		return
 	}
 	defer c.Close()
-	//var req InterfaceRequest
-	//c.ReadJSON(&req)
-	//if auth.IsVerifiedValidationKeyPair(req.Req.OperateID,req.Auth){
-	//	index := searchRunningServerByID(req.Req.OperateID)
-	//	if index < 0 {
-	//		c.WriteJSON(Response{-1,"Invalid server id"})
-	//		return
-	//	}
-		servers[0].ToOutput.IsOutput = true
-		for {
-			c.WriteMessage(websocket.TextMessage,[]byte("12123"))
-			time.Sleep(1 * time.Second)
-			//if err != nil {
-			//	servers[0].ToOutput.IsOutput = false
-			//	break
-			//}
-		}
-	//}
+	// TODO 鉴权
+	OutputMaps[0] = c
+	for {
+		// 心跳包
+		c.WriteMessage(websocket.TextMessage,[]byte("HeartPkg"))
+		time.Sleep(10 * time.Second)
 
+	}
+
+
+}
+
+func IsOutput(n int) (bool,*websocket.Conn){
+	if _,ok := OutputMaps[n];ok {
+		return true,OutputMaps[n]
+	}
+	return false,nil
 }

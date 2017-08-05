@@ -211,6 +211,13 @@ func handleRequest(request Request) Response {
 		} else {
 			return Response{-1,"Invalid Server id"}
 		}
+	case "GetServerPlayers":
+		if index := searchRunningServerByID(request.OperateID);index >=0{
+			b,_ := json.Marshal(servers[index].Players)
+			return Response{-1,fmt.Sprintf("%s",b)}
+		} else {
+			return Response{-1,"Invalid server id"}
+		}
 	}
 	return Response{
 		-1, "Unexpected err",

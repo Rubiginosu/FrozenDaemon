@@ -67,15 +67,10 @@ type ServerLocal struct {
 
 type ServerRun struct {
 	ID         int
-	ToOutput   OutputInfo
 	Players    []string
 	Cmd        *exec.Cmd
 	StdinPipe  *io.WriteCloser
 	StdoutPipe *io.ReadCloser
-}
-type OutputInfo struct {
-	IsOutput bool
-	To       chan []byte
 }
 type ServerAttrElement struct {
 	// Set server.AttrName = AttrValue
