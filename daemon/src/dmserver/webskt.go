@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"colorlog"
 	"time"
+	"fmt"
 )
 
 var OutputMaps = make(map[int]*websocket.Conn, 0)
@@ -19,6 +20,7 @@ func Webskt() {
 
 }
 func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(colorlog.ColorSprint("[Websocket]",colorlog.BK_CYAN),"New Websocket client connected" + r.Host)
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		colorlog.ErrorPrint(err)
