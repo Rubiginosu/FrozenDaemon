@@ -53,6 +53,7 @@ func (server *ServerLocal) Start() error {
 		server.ID,
 		nil,
 		cmd,
+		make([][]byte,50),
 		&stdinPipe,
 		&stdoutPipe,
 	})
@@ -79,10 +80,12 @@ func (s *ServerRun)ProcessOutput() {
 			break
 		}
 		//fmt.Printf("%s",line)
+		s.BufLog = append(s.BufLog[1:],line)
 		s.processOutputLine(string(line)) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
 		if isOut,to := IsOutput(s.ID);isOut{
 			//colorlog.LogPrint("Trying to send line to channel.")
+
 			to.WriteMessage(websocket.TextMessage,line)
 		}
 	}
@@ -140,8 +143,8 @@ func searchRunningServerByID(id int) int {
 	return -1
 }
 
-func (s *ServerRun)getServerStopped(){
+func (s *ServerRun)getServerStopped() {
 	s.Cmd.Wait()
-	colorlog.PointPrint("Server Stopped")
 	serverSaved[searchServerByID(s.ID)].Status = 0
+	colorlog.PointPrint("Server Stopped")
 }

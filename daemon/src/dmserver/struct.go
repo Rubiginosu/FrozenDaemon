@@ -50,10 +50,10 @@ type Module struct {
 }
 
 type ServerLocal struct {
-	ID          int
-	Name        string
-	Executable  string
-	Status      int
+	ID         int
+	Name       string
+	Executable string
+	Status     int
 	/*
 	Status  enum 应该只有
 	0 - 正常未运行
@@ -69,6 +69,7 @@ type ServerRun struct {
 	ID         int
 	Players    []string
 	Cmd        *exec.Cmd
+	BufLog     [][]byte
 	StdinPipe  *io.WriteCloser
 	StdoutPipe *io.ReadCloser
 }

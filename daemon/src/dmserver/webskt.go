@@ -25,6 +25,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	// TODO 鉴权
+	for i:=0;i<len(servers[0].BufLog);i++{
+		c.WriteMessage(websocket.TextMessage,servers[0].BufLog[i])
+	}
 	OutputMaps[0] = c
 	for {
 		// 心跳包
