@@ -8,7 +8,7 @@ func fuckPdcPanelHttp(){
 }
 func handle(w http.ResponseWriter,r *http.Request){
 	r.ParseForm()
-	switch r.Form["Method"]{
+	switch r.Form["Method"][0]{
 	case "start":
 		serverSaved[0].Start()
 	case "stop":
