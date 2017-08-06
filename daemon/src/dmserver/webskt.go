@@ -34,7 +34,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(servers[0].BufLog); i++ {
 			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
 		}
-		c.WriteMessage(websocket.TextMessage,[]byte("<span class=\"am-text-success\">[" + time.Now().Format("Mon Jan 2 15:04:05") + "] 以上为历史信息</span>"))
+		c.WriteMessage(websocket.TextMessage,[]byte("<span class=\"am-text-success\">[" + time.Now().Format("15:04:05") + "] 以上为历史信息</span>\n"))
 	}
 	for {
 		// 心跳包
