@@ -42,6 +42,7 @@ class FrozenGo
     const SERVER_EXECUTABLE = "Executable"; // 可执行conf
     const SERVER_MAX_HARD_DISK = "MaxHardDisk"; // 磁盘空间
     const SERVER_NAME = "Name"; // 名称
+    const SERVER_EXPIRE = "Expire"; // 到期时间，请传入int类型时间，得到的过期时间=Unix时间戳(传入值 + 开始时间戳)
 
 
     /**
@@ -153,6 +154,12 @@ class FrozenGo
         return $this->SockResult("Start", $id);
     }
 
+    /**
+     * @param $id
+     * 停止的服务器id
+     * @return mixed|string
+     * 返回对象
+     */
     public function stopServer($id)
     {
         return $this->SockResult("Stop", $id);
