@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"os"
+	"os/exec"
 	"regexp"
 	"syscall"
-	"os/exec"
 )
 
 //#include<unistd.h>
@@ -28,7 +28,7 @@ func main() {
 	flag.StringVar(&command, "cmd", "", "Command to be run")
 	flag.StringVar(&chroot, "chr", "", "Chroot jail for pro") // 申明并解析参数
 	flag.BoolVar(&proc, "proc", true, " if true -> Mounting proc dir.")
-	flag.IntVar(&sid,"sid",0,"The serverid 's config will be write with cgroups config")
+	flag.IntVar(&sid, "sid", 0, "The serverid 's config will be write with cgroups config")
 	flag.Parse()
 	// 命名空间
 	syscall.Unshare(syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_FILES | syscall.CLONE_FS)

@@ -1,13 +1,13 @@
 package colorlog
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 )
 
 // 让终端有颜色
 const (
-	FR_WHITE   = 30 + iota
+	FR_WHITE = 30 + iota
 	FR_RED
 	FR_GREEN
 	FR_YELLO
@@ -16,7 +16,7 @@ const (
 	FR_CYAN
 )
 const (
-	BK_WHITE   = 30 + iota
+	BK_WHITE = 30 + iota
 	BK_RED
 	BK_GREEN
 	BK_YELLO
@@ -29,18 +29,18 @@ func ColorSprint(message string, color int) string {
 	return "\033[1;" + strconv.Itoa(color) + "m" + message + "\033[0m"
 }
 
-func ErrorPrint(err error){
-	fmt.Println(ColorSprint("[Error]" + err.Error(),FR_RED))
+func ErrorPrint(err error) {
+	fmt.Println(ColorSprint("[Error]"+err.Error(), FR_RED))
 }
-func LogPrint(message string){
-	fmt.Print(ColorSprint("[Info]",FR_BLUE))
+func LogPrint(message string) {
+	fmt.Print(ColorSprint("[Info]", FR_BLUE))
 	fmt.Println(message)
 }
 
-func WarningPrint(message string){
-	fmt.Println(ColorSprint("[Warning]" + message,FR_YELLO))
+func WarningPrint(message string) {
+	fmt.Println(ColorSprint("[Warning]"+message, FR_YELLO))
 }
-func PointPrint(message string){
-	fmt.Print(ColorSprint("[Point]",FR_PURPLE))
+func PointPrint(message string) {
+	fmt.Print(ColorSprint("[Point]", FR_PURPLE))
 	fmt.Println(message)
 }

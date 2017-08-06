@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth"
+	"colorlog"
 	"conf"
 	"dmserver"
 	"encoding/json"
@@ -14,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"colorlog"
 )
 
 const VERSION string = "v0.3.1"
@@ -28,7 +28,7 @@ func main() {
 		printInfo()
 	} // 如果需要调试本程序，那么加上-jump参数可以跳过打印.
 	if !isRoot() {
-		fmt.Println(colorlog.ColorSprint("Need root permission.",colorlog.FR_RED))
+		fmt.Println(colorlog.ColorSprint("Need root permission.", colorlog.FR_RED))
 		return
 	}
 	colorlog.LogPrint("Reading config file")
@@ -74,14 +74,14 @@ func printInfo() {
 /_/    /_/    \____/ /___/\___//_/ /_/ \____/ \____/
 
 
-	`,colorlog.FR_CYAN))
+	`, colorlog.FR_CYAN))
 	time.Sleep(2 * time.Second)
 	fmt.Println("---------------------")
 	time.Sleep(100 * time.Microsecond)
 	fmt.Print("Powered by ")
 	for _, v := range []byte("Axoford12") {
 		time.Sleep(240 * time.Millisecond)
-		fmt.Print(colorlog.ColorSprint(string(v),colorlog.BK_GREEN))
+		fmt.Print(colorlog.ColorSprint(string(v), colorlog.BK_GREEN))
 	}
 	fmt.Println()
 	time.Sleep(1000 * time.Millisecond)

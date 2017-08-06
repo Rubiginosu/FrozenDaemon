@@ -1,12 +1,12 @@
 package dmserver
 
 import (
-	"net/http"
-	"github.com/gorilla/websocket"
-	"strconv"
 	"colorlog"
-	"time"
 	"fmt"
+	"github.com/gorilla/websocket"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 var OutputMaps = make(map[int]*websocket.Conn, 0)
@@ -20,7 +20,7 @@ func Webskt() {
 
 }
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(colorlog.ColorSprint("[Websocket]",colorlog.BK_CYAN),"New Websocket client connected" + r.Host)
+	fmt.Println(colorlog.ColorSprint("[Websocket]", colorlog.BK_CYAN), "New Websocket client connected"+r.Host)
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		colorlog.ErrorPrint(err)
@@ -34,7 +34,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(servers[0].BufLog); i++ {
 			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
 		}
-		c.WriteMessage(websocket.TextMessage,[]byte("<span class=\"am-text-success\">[" + time.Now().Format("15:04:05") + "] 以上为历史信息</span>\n"))
+		c.WriteMessage(websocket.TextMessage, []byte("<span class=\"am-text-success\">["+time.Now().Format("15:04:05")+"] 以上为历史信息</span>\n"))
 	}
 	for {
 		// 心跳包
@@ -42,7 +42,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(10 * time.Second)
 
 	}
-
 
 }
 

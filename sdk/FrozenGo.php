@@ -93,9 +93,9 @@ class FrozenGo
      * 成功时返回"OK"
      * 失败返回错误信息
      */
-    public function createServer($name)
+    public function createServer($name,$id)
     {
-        return $this->SockResult("Create", 0, $name);
+        return $this->SockResult("Create", $id, $name);
     }
 
     /**

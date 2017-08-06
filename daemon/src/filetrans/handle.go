@@ -101,7 +101,7 @@ func (c *Command) auth() int {
 	if len(args) < 2 {
 		// 这个args可能并没有分隔（第三方客户端？）
 	} else if serverID, err := strconv.Atoi(args[0]); err != nil {
-	} else if !dmserver.IsServerAvaible(serverID) {
+	} else if _,ok := dmserver.GetServerSaved()[serverID];!ok {
 		// 卧槽服务器又不可用
 		// 这年头考虑熊孩子要考虑的真的够多..
 	} else if auth.IsVerifiedValidationKeyPair(serverID, args[1]) {

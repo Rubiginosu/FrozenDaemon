@@ -2,25 +2,23 @@ package dmserver
 
 import (
 	"bufio"
-	"encoding/json"
+	"colorlog"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"colorlog"
-	"github.com/gorilla/websocket"
 )
 
 // 服务器状态码
 // 已经关闭
-const(
+const (
 	SERVER_STATUS_CLOSED = iota
 	SERVER_STATUS_RUNNING
 	SERVER_STATUS_STATING
 )
-
 
 func (s *ServerRun) Close() {
 
@@ -37,7 +35,7 @@ func (server *ServerLocal) Start() error {
 	//cmd := exec.Command("./server", "-uid="+strconv.Itoa(config.DaemonServer.UserId), "-mem="+strconv.Itoa(server.MaxMem), "-chr="+"../servers/server"+strconv.Itoa(server.ID), "-cmd="+execConf.Command)
 
 	//#########Testing###########
-	cmd := exec.Command("/root/test/server/php7/bin/php","/root/test/server/1.phar")
+	cmd := exec.Command("/root/test/server/php7/bin/php", "/root/test/server/1.phar")
 	cmd.Dir = "/root/test/server/"
 	stdoutPipe, err := cmd.StdoutPipe()
 
@@ -45,18 +43,18 @@ func (server *ServerLocal) Start() error {
 		return err
 	}
 
-	stdinPipe,err2 := cmd.StdinPipe()
+	stdinPipe, err2 := cmd.StdinPipe()
 	if err2 != nil {
 		return err2
 	}
-	servers = append(servers,ServerRun{
+	servers[server.ID] = &ServerRun{
 		server.ID,
-		nil,
+		[]string{},
 		cmd,
-		make([][]byte,50),
+		make([][]byte, 50),
 		&stdinPipe,
 		&stdoutPipe,
-	})
+	}
 	err3 := cmd.Start()
 	server.Status = SERVER_STATUS_STATING
 	if err3 != nil {
@@ -66,13 +64,16 @@ func (server *ServerLocal) Start() error {
 	return nil
 }
 
-func (s *ServerRun)ProcessOutput() {
+func (s *ServerRun) ProcessOutput() {
 	fmt.Println(s.Cmd.Process.Pid)
 	buf := bufio.NewReader(*s.StdoutPipe)
-	index := searchServerByID(s.ID)
+	if _,ok := serverSaved[s.ID];!ok{
+		delete(servers,s.ID)
+		return
+	}
 	go s.getServerStopped()
 	for {
-		if serverSaved[index].Status == 0 {
+		if serverSaved[s.ID].Status == 0 {
 			break
 		}
 		line, err := buf.ReadBytes('\n') //以'\n'为结束符读入一行
@@ -80,23 +81,20 @@ func (s *ServerRun)ProcessOutput() {
 			break
 		}
 		//fmt.Printf("%s",line)
-		s.BufLog = append(s.BufLog[1:],line)
+		s.BufLog = append(s.BufLog[1:], line)
 		s.processOutputLine(string(line)) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
-		if isOut,to := IsOutput(s.ID);isOut{
+		if isOut, to := IsOutput(s.ID); isOut {
 			//colorlog.LogPrint("Trying to send line to channel.")
 
-			to.WriteMessage(websocket.TextMessage,line)
+			to.WriteMessage(websocket.TextMessage, line)
 		}
 	}
 	colorlog.LogPrint("Break for loop,server stopped or EOF. ")
 
 }
 
-func outputListOfServers() Response {
-	b, _ := json.Marshal(serverSaved)
-	return Response{0, string(b)}
-}
+
 
 // 删除服务器
 func (server *ServerLocal) Delete() {
@@ -111,9 +109,8 @@ func (server *ServerLocal) Delete() {
 	os.RemoveAll(serverRunPath)
 	// 清理服务器所占的储存空间
 	// 违章搭建搞定以后，把这个记账本的东东也删掉
-	id := searchServerByID(server.ID)
-	serverSaved = append(serverSaved[:id], serverSaved[id+1:]...)
 	// go这个切片是[,)左闭右开的区间，应该这么写吧~
+	delete(serverSaved,server.ID)
 	// 保存服务器信息。
 	saveServerInfo()
 }
@@ -128,7 +125,7 @@ func searchServerByID(id int) int {
 	}
 	return -1
 }
-func GetServerSaved() []ServerLocal {
+func GetServerSaved() map[int]*ServerLocal {
 	return serverSaved
 }
 
@@ -143,7 +140,7 @@ func searchRunningServerByID(id int) int {
 	return -1
 }
 
-func (s *ServerRun)getServerStopped() {
+func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
 	serverSaved[searchServerByID(s.ID)].Status = 0
 	colorlog.PointPrint("Server Stopped")

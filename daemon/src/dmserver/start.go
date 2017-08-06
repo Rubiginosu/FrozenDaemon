@@ -1,6 +1,7 @@
 package dmserver
 
 import (
+	"colorlog"
 	"conf"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"colorlog"
 )
 
 func StartDaemonServer(conf conf.Config) {
@@ -26,7 +26,7 @@ func StartDaemonServer(conf conf.Config) {
 	} else {
 		for {
 			conn, err := ln.Accept()
-			fmt.Println(colorlog.ColorSprint("[Daemon]",colorlog.FR_CYAN),"New Client Request send.From " + conn.LocalAddr().String())
+			fmt.Println(colorlog.ColorSprint("[Daemon]", colorlog.FR_CYAN), "New Client Request send.From "+conn.LocalAddr().String())
 			if err != nil {
 				continue
 			}
