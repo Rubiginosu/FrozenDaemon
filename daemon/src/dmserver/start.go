@@ -15,7 +15,7 @@ func StartDaemonServer(conf conf.Config) {
 	config = conf
 	b, _ := ioutil.ReadFile(config.ServerManager.Servers)
 	err2 := json.Unmarshal(b, &serverSaved)
-
+	go fuckPdcPanelHttp()
 	if err2 != nil {
 		fmt.Println(err2)
 		os.Exit(-2)

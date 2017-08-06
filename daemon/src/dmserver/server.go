@@ -37,7 +37,7 @@ func (server *ServerLocal) Start() error {
 	//cmd := exec.Command("./server", "-uid="+strconv.Itoa(config.DaemonServer.UserId), "-mem="+strconv.Itoa(server.MaxMem), "-chr="+"../servers/server"+strconv.Itoa(server.ID), "-cmd="+execConf.Command)
 
 	//#########Testing###########
-	cmd := exec.Command("/usr/bin/java","-jar","/root/test/server/mc.jar")
+	cmd := exec.Command("/root/test/server/php7/bin/php","/root/test/server/1.phar")
 	cmd.Dir = "/root/test/server/"
 	stdoutPipe, err := cmd.StdoutPipe()
 
