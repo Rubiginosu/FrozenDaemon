@@ -7,7 +7,8 @@ import (
 	"colorlog"
 	"time"
 )
-var OutputMaps = make(map[int]*websocket.Conn,0)
+
+var OutputMaps = make(map[int]*websocket.Conn, 0)
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -25,23 +26,25 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	// TODO 鉴权
-	for i:=0;i<len(servers[0].BufLog);i++{
-		c.WriteMessage(websocket.TextMessage,servers[0].BufLog[i])
-	}
+
 	OutputMaps[0] = c
 	for {
 		// 心跳包
-		c.WriteMessage(websocket.TextMessage,[]byte("HeartPkg"))
+		c.WriteMessage(websocket.TextMessage, []byte("HeartPkg"))
 		time.Sleep(10 * time.Second)
 
 	}
-
+	if len(servers) >= 1 {
+		for i := 0; i < len(servers[0].BufLog); i++ {
+			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
+		}
+	}
 
 }
 
-func IsOutput(n int) (bool,*websocket.Conn){
-	if _,ok := OutputMaps[n];ok {
-		return true,OutputMaps[n]
+func IsOutput(n int) (bool, *websocket.Conn) {
+	if _, ok := OutputMaps[n]; ok {
+		return true, OutputMaps[n]
 	}
-	return false,nil
+	return false, nil
 }
