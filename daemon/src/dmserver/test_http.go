@@ -12,6 +12,6 @@ func handle(w http.ResponseWriter,r *http.Request){
 	case "start":
 		serverSaved[0].Start()
 	case "stop":
-		servers[searchRunningServerByID(serverSaved[0].ID)].inputLine("stop")
+		servers[searchRunningServerByID(serverSaved[0].ID)].inputLine("stop\n")
 	}
 }
