@@ -30,17 +30,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// TODO 鉴权
 
 	OutputMaps[0] = c
+	if len(servers) >= 1 {
+		for i := 0; i < len(servers[0].BufLog); i++ {
+			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
+		}
+	}
 	for {
 		// 心跳包
 		c.WriteMessage(websocket.TextMessage, []byte("HeartPkg"))
 		time.Sleep(10 * time.Second)
 
 	}
-	if len(servers) >= 1 {
-		for i := 0; i < len(servers[0].BufLog); i++ {
-			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
-		}
-	}
+
 
 }
 
