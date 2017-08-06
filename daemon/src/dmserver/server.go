@@ -115,16 +115,7 @@ func (server *ServerLocal) Delete() {
 	saveServerInfo()
 }
 
-// 搜索服务器的ID..返回index索引
-// 返回-1代表没找到
-func searchServerByID(id int) int {
-	for i := 0; i < len(serverSaved); i++ {
-		if serverSaved[i].ID == id {
-			return i
-		}
-	}
-	return -1
-}
+
 func GetServerSaved() map[int]*ServerLocal {
 	return serverSaved
 }
@@ -142,6 +133,6 @@ func searchRunningServerByID(id int) int {
 
 func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
-	serverSaved[searchServerByID(s.ID)].Status = 0
+	serverSaved[s.ID].Status = 0
 	colorlog.PointPrint("Server Stopped")
 }

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"colorlog"
 	"time"
+	"errors"
 )
 
 var config conf.Config
@@ -101,7 +102,7 @@ func handleRequest(request Request) Response {
 		serverSaved[0].MaxMem = 1
 	case "Delete":
 		if _,ok := serverSaved[request.OperateID];ok {
-			serverSaved[searchServerByID(request.OperateID)].Delete()
+			serverSaved[request.OperateID].Delete()
 		} else {
 			return Response{-1,"Invalid server id."}
 		}
@@ -219,27 +220,38 @@ func handleRequest(request Request) Response {
 }
 
 func setServerConfigAll(attrs []ServerAttrElement, index int) error {
-	for i := 0; i < len(attrs); i++ {
-		switch attrs[i].AttrName {
-		case "MaxMemory":
-			mem, err := strconv.Atoi(attrs[i].AttrValue)
-			if err != nil {
-				return err
+	// 设置该设置的Attrs
+	if server,ok := serverSaved[index];ok {
+		// 判断被设置那个服务器是否存在于映射
+		for i := 0; i < len(attrs); i++ {
+			switch attrs[i].AttrName {
+			case "MaxMemory":
+				mem, err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxMem = mem
+			case "Executable":
+				server.Executable = attrs[i].AttrValue
+			case "MaxHardDisk":
+				disk, err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxHardDisk = disk
+			case "Name":
+				server.Name = attrs[i].AttrValue
+			case "Expire":
+				expire,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.Expire = server.Expire + int64(expire) - 3600
 			}
-			serverSaved[index].MaxMem = mem
-		case "Executable":
-			serverSaved[index].Executable = attrs[i].AttrValue
-		case "MaxHardDisk":
-			disk, err := strconv.Atoi(attrs[i].AttrValue)
-			if err != nil {
-				return err
-			}
-			serverSaved[index].MaxHardDisk = disk
-		case "Name":
-			serverSaved[index].Name = attrs[i].AttrValue
 		}
 	}
-	return nil
+
+	return errors.New("Err with invalid server id.")
 }
 func outputListOfServers() Response {
 	b, _ := json.Marshal(serverSaved)

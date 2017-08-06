@@ -14,8 +14,8 @@ func (s *ServerRun) processOutputLine(line string /*,startReg *regexp.Regexp,joi
 	leftReg := regexp.MustCompile("(\\w+) left the game.")
 	if startReg.MatchString(line) {
 		colorlog.PointPrint("Server Started!")
-		if index := searchServerByID(s.ID); index >= 0 {
-			serverSaved[index].Status = SERVER_STATUS_RUNNING
+		if server,ok := serverSaved[s.ID]; ok {
+			server.Status = SERVER_STATUS_RUNNING
 		}
 	} else if sub := joinReg.FindStringSubmatch(line); len(sub) > 0 {
 		// 加入服务器
