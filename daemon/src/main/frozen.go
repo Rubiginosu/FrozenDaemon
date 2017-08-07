@@ -31,6 +31,7 @@ func main() {
 		fmt.Println(colorlog.ColorSprint("Need root permission.", colorlog.FR_RED))
 		return
 	}
+	rand.Seed(time.Now().UnixNano())
 	colorlog.LogPrint("Reading config file")
 	config, _ = conf.GetConfig(FILE_CONFIGURATION)
 	colorlog.LogPrint("Configuration get done")
