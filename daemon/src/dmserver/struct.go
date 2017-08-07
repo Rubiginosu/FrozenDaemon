@@ -50,7 +50,7 @@ type Module struct {
 }
 
 type ServerLocal struct {
-	ID int
+	ID         int
 	Name       string
 	Executable string
 	Status     int
@@ -60,9 +60,9 @@ type ServerLocal struct {
 		1 - 正常运行
 		2 - 正在开启
 	*/
-	MaxCpuCores int // CPU核心数
-	MaxMem      int // 最大内存
-	MaxHardDisk int // 磁盘空间，开服时就必须设定好，以后不允许改变.
+	MaxCpuCores int   // CPU核心数
+	MaxMem      int   // 最大内存
+	MaxHardDisk int   // 磁盘空间，开服时就必须设定好，以后不允许改变.
 	Expire      int64 // 过期时间，Unix时间戳
 }
 

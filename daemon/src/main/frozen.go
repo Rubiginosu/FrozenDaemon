@@ -6,6 +6,7 @@ import (
 	"dmserver"
 	"encoding/json"
 	"fmt"
+	"ftrans"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"ftrans"
 )
 
 const VERSION string = "v0.3.1"

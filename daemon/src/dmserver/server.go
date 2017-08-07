@@ -67,8 +67,8 @@ func (server *ServerLocal) Start() error {
 func (s *ServerRun) ProcessOutput() {
 	fmt.Println(s.Cmd.Process.Pid)
 	buf := bufio.NewReader(*s.StdoutPipe)
-	if _,ok := serverSaved[s.ID];!ok{
-		delete(servers,s.ID)
+	if _, ok := serverSaved[s.ID]; !ok {
+		delete(servers, s.ID)
 		return
 	}
 	go s.getServerStopped()
@@ -94,8 +94,6 @@ func (s *ServerRun) ProcessOutput() {
 
 }
 
-
-
 // 删除服务器
 func (server *ServerLocal) Delete() {
 
@@ -110,11 +108,10 @@ func (server *ServerLocal) Delete() {
 	// 清理服务器所占的储存空间
 	// 违章搭建搞定以后，把这个记账本的东东也删掉
 	// go这个切片是[,)左闭右开的区间，应该这么写吧~
-	delete(serverSaved,server.ID)
+	delete(serverSaved, server.ID)
 	// 保存服务器信息。
 	saveServerInfo()
 }
-
 
 func GetServerSaved() map[int]*ServerLocal {
 	return serverSaved
