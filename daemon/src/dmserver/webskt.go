@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -15,8 +14,8 @@ var upgrader = websocket.Upgrader{
 }
 
 func Webskt() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":"+strconv.Itoa(config.ServerManager.WebSocketPort), nil)
+	http.HandleFunc("/ws", handler)
+	http.ListenAndServe(":52022", nil)
 
 }
 func handler(w http.ResponseWriter, r *http.Request) {

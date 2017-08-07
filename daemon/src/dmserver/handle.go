@@ -1,7 +1,6 @@
 package dmserver
 
 import (
-	"auth"
 	"conf"
 	"encoding/json"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"colorlog"
 	"time"
 	"errors"
+	"auth"
 )
 
 var config conf.Config
@@ -56,7 +56,6 @@ func handleConnection(c net.Conn) {
 
 // 命令处理器
 func handleRequest(request Request) Response {
-	pairs := auth.GetValidationKeyPairs()
 	colorlog.PointPrint("Recevied " + colorlog.ColorSprint(request.Method, colorlog.FR_GREEN) + " Command!")
 	switch request.Method {
 
@@ -133,21 +132,6 @@ func handleRequest(request Request) Response {
 			return Response{-1,"Invalid server id"}
 		}
 		return Response{0,"OK"}
-	case "GetPairs":
-		for i := 0; i < len(pairs); i++ {
-			if pairs[i].ValidationKeyPair.ID == request.OperateID {
-				responseData, _ := json.Marshal(pairs[i])
-				return Response{
-					0, string(responseData),
-				}
-			}
-		}
-		// 未找到已经存在的ValidationKey
-		// 为请求者生成ValidationKey
-		pair := auth.ValidationKeyGenerate(request.OperateID)
-		responseData, _ := json.Marshal(pair)
-		auth.ValidationKeyPairs = append(auth.ValidationKeyPairs, pair)
-		return Response{0, string(responseData)}
 	case "ExecInstall":
 
 		colorlog.LogPrint("Try to auto install id:" + strconv.Itoa(request.OperateID))
@@ -213,6 +197,9 @@ func handleRequest(request Request) Response {
 		} else {
 			return Response{-1,"Invalid server id"}
 		}
+	case "KeyRegister":
+		auth.KeyRigist(request.Message,request.OperateID)
+		return Response{0,"OK"}
 	}
 	return Response{
 		-1, "Unexpected err",

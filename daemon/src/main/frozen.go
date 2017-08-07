@@ -1,12 +1,10 @@
 package main
 
 import (
-	"auth"
 	"colorlog"
 	"conf"
 	"dmserver"
 	"encoding/json"
-	"filetrans"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"ftrans"
 )
 
 const VERSION string = "v0.3.1"
@@ -31,7 +30,6 @@ func main() {
 		fmt.Println(colorlog.ColorSprint("Need root permission.", colorlog.FR_RED))
 		return
 	}
-	rand.Seed(time.Now().UnixNano())
 	colorlog.LogPrint("Reading config file")
 	config, _ = conf.GetConfig(FILE_CONFIGURATION)
 	colorlog.LogPrint("Configuration get done")
@@ -52,11 +50,10 @@ func main() {
 	}
 	colorlog.PointPrint("Starting Server Manager.")
 	go dmserver.StartDaemonServer(config)
-	go filetrans.ListenAndServe(config)
+	go ftrans.Start()
 	colorlog.PointPrint("Starting websocket server")
 	go dmserver.Webskt()
 	colorlog.PointPrint("Starting ValidationKeyUpdater.")
-	go auth.ValidationKeyUpdate(config.DaemonServer.ValidationKeyOutDateTimeSeconds)
 	colorlog.LogPrint("Done,type \"?\" for help. ")
 	for {
 		var s string

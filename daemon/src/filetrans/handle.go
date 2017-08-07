@@ -1,7 +1,6 @@
 package filetrans
 
 import (
-	"auth"
 	"dmserver"
 	"encoding/json"
 	"fmt"
@@ -104,10 +103,10 @@ func (c *Command) auth() int {
 	} else if _,ok := dmserver.GetServerSaved()[serverID];!ok {
 		// 卧槽服务器又不可用
 		// 这年头考虑熊孩子要考虑的真的够多..
-	} else if auth.IsVerifiedValidationKeyPair(serverID, args[1]) {
-		// 哎，貌似是考虑完了。。
-		return serverID
-	} else {
+	//} else if auth.IsVerifiedValidationKeyPair(serverID, args[1]) {
+	//	// 哎，貌似是考虑完了。。
+	//	return serverID
+	//} else {
 	}
 	return -1
 }

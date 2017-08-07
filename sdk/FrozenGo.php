@@ -221,6 +221,19 @@ class FrozenGo
         print_r($result);
     }
 
+    /**
+     * 本函数用于向服务器注册key
+     * @param $key
+     * key，字符串
+     * @param $id
+     * id 对应服务器id整数
+     * @return mixed|string
+     * 返回结果对象
+     */
+    public function keyRegister($key,$id){
+        return $this->SockResult("KeyRegister",$id,$key);
+    }
+
     private function SockResult($method, $operateId = 0, $message = "")
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
