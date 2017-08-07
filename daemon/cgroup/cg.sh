@@ -1,9 +1,9 @@
 case $1 in 
 	"cg") case $2 in
 			"init")
-				mkdir /cgroup/cpu/${3} /cgroup/memory/${3} /cgroup/blkio/${3} /cgroup/net_cls/${3}
+				mkdir /sys/fs/cgroup/cpu/${3} /sys/fs/cgroup/memory/${3} /sys/fs/cgroup/blkio/${3} /sys/fs/cgroup/net_cls/${3}
 				# ${4} cpu $5 memmax $6 $7 $8 blkio blkio.throttle.read_bps_device $9 netcls
-				tmp=$(cat /cgroup/cpu/${3}/cpu.cfs_period_us)
+				tmp=$(cat /sys/fs/cgroup/cpu/${3}/cpu.cfs_period_us)
 				cpux=$4
 				rmb=$6
 				wmb=$7
@@ -12,17 +12,17 @@ case $1 in
 				let wmb=1024*1024*wmb
 				let mmb=1024*1024*mmb
 				let tmp=tmp*cpux/100
-				echo $tmp > /cgroup/cpu/${3}/cpu.cfs_quota_us
-				echo $mmb > /cgroup/memory/${3}/memory.max_usage_in_bytes
-				echo "0x0001${9}" > /cgroup/net_cls/${3}/net_cls.classid
-				echo "${8} ${rmb}" > /cgroup/blkio/${3}/blkio.throttle.read_bps_device
-				echo "${8} ${wmb}" > /cgroup/blkio/${3}/blkio.throttle.write_bps_device
+				echo $tmp > /sys/fs/cgroup/cpu/${3}/cpu.cfs_quota_us
+				echo $mmb > /sys/fs/cgroup/memory/${3}/memory.max_usage_in_bytes
+				echo "0x0001${9}" > /sys/fs/cgroup/net_cls/${3}/net_cls.classid
+				echo "${8} ${rmb}" > /sys/fs/cgroup/blkio/${3}/blkio.throttle.read_bps_device
+				echo "${8} ${wmb}" > /sys/fs/cgroup/blkio/${3}/blkio.throttle.write_bps_device
 				;;
 			"del")
-				rmdir /cgroup/cpu/${3} /cgroup/memory/${3} /cgroup/blkio/${3} /cgroup/net_cls/${3}
+				rmdir /sys/fs/cgroup/cpu/${3} /sys/fs/cgroup/memory/${3} /sys/fs/cgroup/blkio/${3} /sys/fs/cgroup/net_cls/${3}
 				;;
 			"run")
-				/bin/echo ${4} |tee /cgroup/cpu/${3}/tasks /cgroup/memory/${3}/tasks /cgroup/blkio/${3}/tasks /cgroup/net_cls/${3}/tasks
+				/bin/echo ${4} |tee /sys/fs/cgroup/cpu/${3}/tasks /sys/fs/cgroup/memory/${3}/tasks /sys/fs/cgroup/blkio/${3}/tasks /sys/fs/cgroup/net_cls/${3}/tasks
 				;;
 			esac;;
 	"net") DEV=$6;
@@ -39,6 +39,7 @@ case $1 in
 			esac;;
 	"init") 
 	DEV=$2;
+	#tc qdisc del dev $DEV root
 	tc qdisc add dev $DEV root handle 1: htb;
 	tc class add dev $DEV parent 1: classid 1: htb rate 10000mbit ceil 10000mbit;
 	service cgconfig restart;
