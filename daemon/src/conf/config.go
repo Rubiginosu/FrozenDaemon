@@ -68,17 +68,12 @@ func GenerateConfig(filepath string) Config {
 
 // 用于获取一个随机字符串
 func RandString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-	rs := make([]string, length)
-	for start := 0; start < length; start++ {
-		t := rand.Intn(3)
-		if t == 0 {
-			rs = append(rs, strconv.Itoa(rand.Intn(10)))
-		} else if t == 1 {
-			rs = append(rs, string(rand.Intn(26)+65))
-		} else {
-			rs = append(rs, string(rand.Intn(26)+97))
-		}
-	}
-	return strings.Join(rs, "")
+	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        bytes := []byte(str)
+        result := []byte{}
+   //r := rand.New(rand.NewSource(time.Now().UnixNano()))
+   	for i := 0; i < len; i++ {
+      		result = append(result, bytes[rand.Intn(len(bytes))])
+   	}
+   	return string(result)
 }
