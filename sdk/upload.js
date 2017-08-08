@@ -5,8 +5,8 @@ function FileSlicer(file) {
     this.currentSlice = 0;
 
     this.getNextSlice = function (){
-      var start = (this.currentSlice + 1) * this.sliceSize
-      var end = Math.min(this.currentSlice * this.sliceSize,file.size);
+      var start = this.currentSlice * this.sliceSize
+      var end = Math.min((this.currentSlice + 1) * this.sliceSize,file.size);
       ++this.currentSlice;
 
       return file.slice(start,end);
