@@ -17,15 +17,19 @@ function FileSlicer(file) {
 
 function Uploader(url,file) {
     var fs = new FileSlicer(file);
-    var ws = new WebSocket(url);
+    var ws = new WebSocket(url)
+
 
     ws.onopen = function () {
         ws.send(fs.getNextSlice());
     }
     ws.onmessage = function (ms) {
         if(ms.data=="OK"){
+            console.log("get.")
+            console.log(ms.data)
+            console.log(ms.data == "OK")
             fs.slices--
-            if(fs.slices > 0) socket.send(fs.getNextSlice())
+            if(fs.slices > 0) ws.send(fs.getNextSlice())
         } else {
 
         }
