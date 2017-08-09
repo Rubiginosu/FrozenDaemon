@@ -5,7 +5,7 @@ import "time"
 var keys = make(map[string]*KeyPair, 0)
 
 const (
-	KEY_OUT_DATE = -2 + iota
+	KEY_OUT_OF_DATE   = -1 -iota
 	KEY_VERIFY_FAILED
 )
 
@@ -14,7 +14,7 @@ func VerifyKey(key string) int {
 	if pair, ok := keys[key]; ok {
 		if pair.Time <= time.Now().Unix() {
 			delete(keys, key)
-			return KEY_OUT_DATE
+			return KEY_OUT_OF_DATE
 		}
 		return pair.ID
 	}

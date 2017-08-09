@@ -6,6 +6,9 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
+	"auth"
+	"strconv"
+	"sync"
 )
 
 var OutputMaps = make(map[int]*websocket.Conn, 0)
@@ -21,27 +24,46 @@ func Webskt() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(colorlog.ColorSprint("[Websocket]", colorlog.BK_CYAN), "New Websocket client connected"+r.Host)
 	c, err := upgrader.Upgrade(w, r, nil)
+
 	if err != nil {
 		colorlog.ErrorPrint(err)
 		return
 	}
 	defer c.Close()
-	// TODO 鉴权
-
-	OutputMaps[0] = c
+	// 鉴权格式
+	// ->   key
+	// <-   result
+	// result == false -> Close
+	// result == true  ->  add OutputMaps -> send messages
+	_, message, err2 := c.ReadMessage()
+	if err2 != nil {
+		colorlog.ErrorPrint(err2)
+	}
+	sid := auth.VerifyKey(string(message)) // 强转String再传入Auth
+	switch sid {
+	case auth.KEY_OUT_OF_DATE:
+		c.WriteMessage(websocket.TextMessage, []byte("Key out of date."))
+		return
+	case auth.KEY_VERIFY_FAILED:
+		c.WriteMessage(websocket.TextMessage, []byte("Key Verify Failed."))
+		return
+	}
+	// 上面检测sid。
+	defer delete(OutputMaps, sid)
+	c.WriteMessage(websocket.TextMessage, []byte("Verified key,sid:"+strconv.Itoa(sid)))
 	if len(servers) >= 1 {
-		for i := 0; i < len(servers[0].BufLog); i++ {
+		for i := 0; i < len(servers[sid].BufLog); i++ {
 			c.WriteMessage(websocket.TextMessage, servers[0].BufLog[i])
 		}
 		c.WriteMessage(websocket.TextMessage, []byte("<span class=\"am-text-success\">["+time.Now().Format("15:04:05")+"] 以上为历史信息</span>\n"))
 	}
+	OutputMaps[sid] = c
 	for {
 		// 心跳包
 		c.WriteMessage(websocket.TextMessage, []byte("HeartPkg"))
 		time.Sleep(10 * time.Second)
 
 	}
-
 }
 
 func IsOutput(n int) (bool, *websocket.Conn) {

@@ -22,7 +22,7 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		if sid == auth.KEY_VERIFY_FAILED {
 			w.Write([]byte("Key Verify Failed!"))
 			return
-		} else if sid == auth.KEY_OUT_DATE {
+		} else if sid == auth.KEY_OUT_OF_DATE {
 			w.Write([]byte("Key out of date"))
 			return
 		}
