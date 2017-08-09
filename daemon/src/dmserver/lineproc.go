@@ -8,10 +8,7 @@ import (
 /*
 本文件用于处理一行蜜汁代码
 */
-func (s *ServerRun) processOutputLine(line string /*,startReg *regexp.Regexp,joinReg *regexp.Regexp,leftReg *regexp.Regexp*/) {
-	startReg := regexp.MustCompile("Done \\(.+s\\)!")
-	joinReg := regexp.MustCompile("(\\w+)\\[.+\\] logged in")
-	leftReg := regexp.MustCompile("(\\w+) left the game.")
+func (s *ServerRun) processOutputLine(line string ,startReg,joinReg,leftReg *regexp.Regexp) {
 	if startReg.MatchString(line) {
 		colorlog.PointPrint("Server Started!")
 		if server, ok := serverSaved[s.ID]; ok {

@@ -1,15 +1,16 @@
 {
 	"ServerManager": {
 		"Servers": "../data/servers.json",
-		"Modules": "../data/modules",
-		"WebSocketPort": 52024
+		"Modules": "../data/modules.json",
+		"WebSocketPort": 52024,
+		"HardDisk": "8:0"
 	},
 	"DaemonServer": {
 		"Port": 52023,
-		"VerifyCode": "987IsA1MWIa68yQcvMfy",
+		"VerifyCode": "hvGpglPuYs9xTfmgrTKQYlqzkBHlvMhJgwFr7PMwMZ6yz4LuhBnyXRk1HyMgaN07",
 		"DefaultBufLength": 256,
 		"ValidationKeyOutDateTimeSeconds": 20,
-		"UserId": 1001
+		"UserId": 100000
 	},
 	"FileTransportServer": {
 		"Port": 52025

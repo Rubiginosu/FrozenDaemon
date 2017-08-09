@@ -26,6 +26,7 @@ type serverManager struct {
 	Servers       string
 	Modules       string
 	WebSocketPort int
+	HardDisk      string
 }
 
 type FileTransportServer struct {
@@ -54,8 +55,8 @@ func GenerateConfig(filepath string) Config {
 		panic(err)
 	}
 	var v Config = Config{
-		serverManager{"../data/servers.json", "../data/modules.json", 52024},
-		DaemonServer{52023, RandString(20), 256, 20, 100000}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+		serverManager{"../data/servers.json", "../data/modules.json", 52024,"8:0"},
+		DaemonServer{52023, RandString(64), 256, 20, 100000}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
 	s, _ := json.MarshalIndent(v, "", "\t")

@@ -8,7 +8,6 @@ import (
 	"time"
 	"auth"
 	"strconv"
-	"sync"
 )
 
 var OutputMaps = make(map[int]*websocket.Conn, 0)

@@ -8,16 +8,27 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"path/filepath"
+	"strings"
 )
 
-// 按照错误码准备环境
+// 准备环境
 func (server *ServerLocal) EnvPrepare() error {
+	cmd := exec.Command("/bin/bash","../cgroup/cg.sh","cg",
+		"init",
+		"server" + strconv.Itoa(server.ID),
+		strconv.Itoa(server.MaxCpuCores),
+		strconv.Itoa(server.MaxMem),"10","10","",
+		strings.Replace(fmt.Sprintf("%4x",server.ID)," ","0",-1))
+	cmd.Env = os.Environ()
+	//  上面的替换是让服务器的id替换为四位十六进制id
+	cmd.Run()
 	fmt.Printf("Preparing server runtime for ServerID:%d \n", server.ID)
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
 	// 文件夹不存在则创建文件夹
 	autoMakeDir(serverDataDir + "/serverData")
 
-	if /*_, err0 := os.Stat(serverDataDir + ".loop"); /*err0 != nil*/ false { //检查loop回环文件是否存在，如果不存在则创建
+	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil { //检查loop回环文件是否存在，如果不存在则创建
 		fmt.Println("No loop file found!")
 		//  新增 loop
 		if server.MaxHardDisk == 0 {
@@ -42,28 +53,28 @@ func (server *ServerLocal) EnvPrepare() error {
 		}
 
 	}
-	//fmt.Println("Preparing server data dir.")
+	fmt.Println("Preparing server data dir.")
 	// 为挂载文件夹做好准备
-	//autoMakeDir(serverDataDir + "/lib")
-	//autoMakeDir(serverDataDir + "/execPath")
-	//execPath,_ := filepath.Abs("../exec")
-	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
-	//cmd2.Run()
-	//if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
-	//	autoMakeDir(serverDataDir + "/lib64")
-	//	// 这个谁说的准？ 哈哈～
-	//}
-	//// 挂载回环文件
-	//fmt.Println("Mounting loop file")
-	//cmd := exec.Command("/bin/mount", "-o", "loop",serverDataDir+"/server" + strconv.Itoa(server.ID) + ".loop", serverDataDir)
-	//cmd.Run()
-	//
-	//err := server.mountDirs() // 挂载其他文件
-	//if err != nil {
-	//	fmt.Println("[ERROR]" + err.Error())
-	//}
+	autoMakeDir(serverDataDir + "/lib")
+	autoMakeDir(serverDataDir + "/execPath")
+	execPath,_ := filepath.Abs("../exec")
+	cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
+	cmd2.Run()
+	if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
+		autoMakeDir(serverDataDir + "/lib64")
+		// 这个谁说的准？ 哈哈～
+	}
+	// 挂载回环文件
+	fmt.Println("Mounting loop file")
+	cmd3 := exec.Command("/bin/mount", "-o", "loop",serverDataDir+"/server" + strconv.Itoa(server.ID) + ".loop", serverDataDir)
+	cmd3.Run()
+
+	err := server.mountDirs() // 挂载其他文件
+	if err != nil {
+		fmt.Println("[ERROR]" + err.Error())
+	}
 	// 挂载结束
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////
 	return nil
 }
 
