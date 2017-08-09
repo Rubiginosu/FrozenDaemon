@@ -5,17 +5,21 @@ import "time"
 var keys = make(map[string]*KeyPair, 0)
 
 const (
-	KEY_OUT_OF_DATE   = -1 -iota
-	KEY_VERIFY_FAILED
+	KEY_VERIFY_FAILED = -1
 )
-
+func Timer(){
+	for {
+		for k,v := range keys {
+			if v.Time <= time.Now().Unix() {
+				delete(keys,k)
+			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
 // 传入Key,返回服务器id或一些状态值
 func VerifyKey(key string) int {
 	if pair, ok := keys[key]; ok {
-		if pair.Time <= time.Now().Unix() {
-			delete(keys, key)
-			return KEY_OUT_OF_DATE
-		}
 		return pair.ID
 	}
 	return KEY_VERIFY_FAILED

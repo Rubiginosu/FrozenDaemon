@@ -10,6 +10,7 @@ func serverOutDateClearer() {
 				delete(serverSaved, k)
 			}
 		}
+
 		time.Sleep(5 * time.Second)
 	}
 }

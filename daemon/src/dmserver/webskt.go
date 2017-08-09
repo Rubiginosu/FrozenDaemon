@@ -21,7 +21,8 @@ func Webskt() {
 
 }
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(colorlog.ColorSprint("[Websocket]", colorlog.BK_CYAN), "New Websocket client connected"+r.Host)
+	fmt.Println(colorlog.ColorSprint("[Websocket]",
+		colorlog.BK_CYAN), "New Websocket OUTPUT client connected" + r.RemoteAddr)
 	c, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -39,12 +40,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		colorlog.ErrorPrint(err2)
 	}
 	sid := auth.VerifyKey(string(message)) // 强转String再传入Auth
-	switch sid {
-	case auth.KEY_OUT_OF_DATE:
-		c.WriteMessage(websocket.TextMessage, []byte("Key out of date."))
-		return
-	case auth.KEY_VERIFY_FAILED:
-		c.WriteMessage(websocket.TextMessage, []byte("Key Verify Failed."))
+	if sid < 0 {
+		c.WriteMessage(websocket.TextMessage,[]byte("Key Verified failed..."))
 		return
 	}
 	// 上面检测sid。

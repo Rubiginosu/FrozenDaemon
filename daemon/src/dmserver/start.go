@@ -9,12 +9,14 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"auth"
 )
 
 func StartDaemonServer(conf conf.Config) {
 	config = conf
 	b, _ := ioutil.ReadFile(config.ServerManager.Servers)
 	go serverOutDateClearer()
+	go auth.Timer()
 	err2 := json.Unmarshal(b, &serverSaved)
 	if err2 != nil {
 		fmt.Println(err2)
