@@ -1,0 +1,20 @@
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Test</title>
+        <script src="upload.js"></script>
+	</head>
+	<body>
+		<input type="file" id="file" name="file">
+		<button onclick="upload()">Upload</button>
+        <script>
+            function upload(){
+                var file = document.getElementById('file').files;
+                for (var i=0;i<file.length;i++){
+                    Uploader("ws://127.0.0.1:52022/upload",file[i],"112233","testupload","777");
+                }
+            }
+        </script>
+    </body>
+</html>
+

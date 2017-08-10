@@ -1,8 +1,12 @@
 package ftrans
 
-import "net/http"
+import (
+	"net/http"
+	"conf"
+)
 
-func Start() {
+func Start(configure conf.Config) {
+	config = configure
 	http.HandleFunc("/download", handleDownload)
 	http.HandleFunc("/upload",handleUpload)
 }

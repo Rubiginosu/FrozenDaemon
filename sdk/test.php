@@ -6,8 +6,8 @@
  * Time: 下午10:15
  */
 include "FrozenGo.php";
-$fg = new FrozenGo("127.0.0.1",52023,"987IsA1MWIa68yQcvMfy");
-print_r($fg->keyRegister("12345",0));
+$fg = new FrozenGo("127.0.0.1",52023,"hvGpglPuYs9xTfmgrTKQYlqzkBHlvMhJgwFr7PMwMZ6yz4LuhBnyXRk1HyMgaN07");
+print_r($fg->keyRegister("112233",0));
 //print_r($fg->getServerList());
 //print_r($fg->createServer("test",1));
 //print_r($fg->getServerList());

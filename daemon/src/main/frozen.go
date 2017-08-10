@@ -50,7 +50,7 @@ func main() {
 	}
 	colorlog.PointPrint("Starting Server Manager.")
 	go dmserver.StartDaemonServer(config)
-	go ftrans.Start()
+	go ftrans.Start(config)
 	colorlog.PointPrint("Starting websocket server")
 	go dmserver.Webskt()
 	colorlog.PointPrint("Starting ValidationKeyUpdater.")
@@ -79,7 +79,7 @@ func printInfo() {
 	fmt.Print("Powered by ")
 	for _, v := range []byte("Axoford12") {
 		time.Sleep(240 * time.Millisecond)
-		fmt.Print(colorlog.ColorSprint(string(v), colorlog.BK_GREEN))
+		fmt.Print(colorlog.ColorSprint(string(v), colorlog.FR_GREEN))
 	}
 	fmt.Println()
 	time.Sleep(1000 * time.Millisecond)

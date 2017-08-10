@@ -10,11 +10,21 @@ import (
 	"github.com/gorilla/websocket"
 	"os"
 	"fmt"
-	"regexp"
 	"errors"
 	"os/exec"
+	"conf"
 )
-
+var config conf.Config
+/*
+[WS统一注释原则]
+协议说明，（该区域仅包含认证协议）
+<- 代表输出至浏览器websocket
+-> 代表从浏览器websocket读取数据
+<= 代表打印Log信息
+ ||  或者,仅包含其一
+ && 附加动作
+ CLOSE 关闭连接结束函数
+ */
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -41,10 +51,19 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+/*
 
++--------------------------------------------------------------------------
+|   -> Key
+|   <- Verified key || ( Key Verified failed && CLOSE )
+|   剩下部分转交receiveWriteUploadFile(conn,sid)
++--------------------------------------------------------------------------
+
+
+ */
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(colorlog.ColorSprint("[Websocket]",
-		colorlog.BK_CYAN), "New Websocket UPLOAD client connected" + r.RemoteAddr)
+		colorlog.FR_CYAN), "New Websocket UPLOAD client connected" + r.RemoteAddr)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		colorlog.ErrorPrint(err)
@@ -61,19 +80,31 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	if sid < 0 {
 		colorlog.LogPrint("Websocket client auth failed")
 		conn.WriteMessage(websocket.TextMessage,[]byte("Key Verified failed"))
+		conn.Close()
+		return
 	}
 	colorlog.LogPrint("Websocket client auth ok.sid:" + strconv.Itoa(sid))
-	conn.WriteMessage(websocket.TextMessage,[]byte("Verified key,sid:" + strconv.Itoa(sid)))
+	conn.WriteMessage(websocket.TextMessage,[]byte("Verified key"))
 	receiveWriteUploadFile(conn,sid)
 
 
 }
 
+
 /*
-解析要求
- =>  test.txt | 777
- <=
- */
+-> 文件名|文件权限 #  | 符号左右两边的空格会包含进去
+<= 客户端请求信息
+<-
+	{
+		Invalid file info format. # 错误的请求格式
+		Permission denied.        # 你想通过我日站？想多了
+		OK						  # 小学生鉴定完毕，你不是小学生
+	}
+-> 文件流........
+-> OK && OK # js才看了半个小时凑合写的SDK...将就用吧,魔法必须输出两个
+
+
+*/
 func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 	_,message,err := conn.ReadMessage()
 	if err != nil {
@@ -87,14 +118,16 @@ func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 		conn.WriteMessage(websocket.TextMessage,[]byte(err2.Error()))
 		conn.Close()
 		return
-	} else {
-		colorlog.LogPrint("Client request to upload file: " + name + " and mode:" + mode)
-		conn.WriteMessage(websocket.TextMessage,[]byte("OK"))
 	}
 	current := filepath.Clean("../servers/server" + strconv.Itoa(sid) + "/" + name) // 过滤检查
-	if strings.Index(current,"../servers/server" + strconv.Itoa(sid)) <= 0 {
+	if strings.Index(current,"../servers/server" + strconv.Itoa(sid)) < 0 {
 		conn.WriteMessage(websocket.TextMessage,[]byte("Permission denied."))
+		conn.Close()
+		return
 	}
+	colorlog.LogPrint("Client request to upload file: " + name + " and mode:" + mode)
+	conn.WriteMessage(websocket.TextMessage,[]byte("Ready to upload"))
+
 
 	file,err3 := os.OpenFile(current,os.O_TRUNC | os.O_WRONLY | os.O_CREATE | os.O_SYNC,777)
 	if err3 != nil {
@@ -107,8 +140,14 @@ func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 		//conn.ReadMessage()
 		_,message,err := conn.ReadMessage()
 		if err != nil {
-			colorlog.ErrorPrint(err)
-			return
+			if err.Error() != "websocket: close 1005 (no status)" {
+				colorlog.ErrorPrint(err)
+				return
+			} else {
+				colorlog.PointPrint("Websocket upload finished.")
+				break
+			}
+
 		}
 		_,err2 := file.Write(message)
 		if err != nil {
@@ -122,15 +161,17 @@ func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 	}
 	file.Close()
 	cmd := exec.Command("/bin/chmod",string(mode),current)
+	colorlog.LogPrint("Running :/bin/chmod"+" "+string(mode)+" "+current)
 	err4 := cmd.Run()
 	if err4 != nil{
 		colorlog.ErrorPrint(err3)
 		conn.WriteMessage(websocket.TextMessage,[]byte(err3.Error()))
 		conn.Close()
 	}
+	os.Chown(current, config.DaemonServer.UserId, config.DaemonServer.UserId)
 }
 func parseUploadMessage(message []byte) (string,string,error){
-	res := regexp.MustCompile(" *| *").Split(string(message),2)
+	res := strings.Split(string(message),"|")
 	if len(res) < 2 {
 		return "","",errors.New("Invalid file info format.")
 	}

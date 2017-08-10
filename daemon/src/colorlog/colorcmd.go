@@ -16,7 +16,7 @@ const (
 	FR_CYAN
 )
 const (
-	BK_WHITE = 30 + iota
+	BK_WHITE = 40 + iota
 	BK_RED
 	BK_GREEN
 	BK_YELLO
