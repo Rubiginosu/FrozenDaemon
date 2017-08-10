@@ -5,7 +5,7 @@
  * @constructor
  */
 function FileSlicer(file) {
-    this.sliceSize = 1024 * 1024;
+    this.sliceSize = 1024 * 1024 * 5;
     this.slices = Math.ceil(file.size / this.sliceSize);
 
     this.currentSlice = 0;
@@ -44,9 +44,6 @@ function Uploader(url, file, key, name, mode) {
         ws.send(key);
         ws.onmessage = function (ms) {
             if (ms.data == "OK") {
-                console.log("get.");
-                console.log(ms.data);
-                console.log(ms.data == "OK");
                 fs.slices--;
                 if (fs.slices > 0) ws.send(fs.getNextSlice()); else ws.close();
             } else if (ms.data == "Verified key"){

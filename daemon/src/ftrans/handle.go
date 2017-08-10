@@ -157,7 +157,6 @@ func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 			return
 		}
 		conn.WriteMessage(websocket.TextMessage,[]byte("OK"))
-		conn.WriteMessage(websocket.TextMessage,[]byte("OK"))
 	}
 	file.Close()
 	cmd := exec.Command("/bin/chmod",string(mode),current)
