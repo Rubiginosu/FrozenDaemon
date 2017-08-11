@@ -38,7 +38,7 @@ type ExecConf struct {
 	NewPlayerJoinRegexp  string // 判定新人加入的表达式
 	PlayExitRegexp       string // 判定有人退出的表达式
 	StoppedServerCommand string // 服务器软退出指令
-	Mount                []string
+	Link                 []string
 	ProcDir              bool // 需不需要特殊挂载proc 即在容器环境中，是否需要mount -t proc none /proc
 }
 

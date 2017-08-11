@@ -32,9 +32,6 @@ func main() {
 	// 命名空间
 	syscall.Unshare(syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_FILES | syscall.CLONE_FS)
 	root := "../servers/server" + strconv.Itoa(sid)
-	if _, err := os.Stat("/lib64"); err == nil {
-		os.Mkdir(root+"/lib64", 0664)
-	}
 	syscall.Chroot(root)
 	if proc {
 		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")

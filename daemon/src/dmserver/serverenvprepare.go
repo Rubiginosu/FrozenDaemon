@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"path/filepath"
 )
 
 // 准备环境
@@ -20,7 +21,10 @@ func (server *ServerLocal) EnvPrepare() error {
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
 	cmd.Env = os.Environ()
 	//  上面的替换是让服务器的id替换为四位十六进制id
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
 	fmt.Printf("Preparing server runtime for ServerID:%d \n", server.ID)
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
 	// 文件夹不存在则创建文件夹
@@ -65,10 +69,17 @@ func (server *ServerLocal) EnvPrepare() error {
 	// 挂载回环文件
 	fmt.Println("Mounting loop file")
 	cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+"/server"+strconv.Itoa(server.ID)+".loop", serverDataDir)
-	cmd3.Run()
-
+	err2 := cmd3.Run()
+	if err2 != nil {
+		return err2
+	}
+	conf,err3 := server.loadExecutableConfig()
+	if err3 != nil {
+		return err3
+	}
+	err4 := server.linkDirs(conf)
 	/////////////////////////////////////////////////////////
-	return nil
+	return err4
 }
 
 func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
@@ -83,4 +94,33 @@ func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
 		return newServerRuntimeConf, err
 	}
 	return newServerRuntimeConf, nil // 返回结果
+}
+
+func (server *ServerLocal) makeDirInServerPath(path string,mode os.FileMode) error{
+	return os.Mkdir("../servers/server" + strconv.Itoa(server.ID) + "/" + path,mode)
+}
+func (server *ServerLocal) linkDirFile (oldName string) error{
+	return os.Link(oldName,"../servers/server" + strconv.Itoa(server.ID) + "/" +oldName)
+}
+func (server *ServerLocal)linkDirs(conf ExecConf) error {
+	for _,v := range conf.Link {
+		err := filepath.Walk(v,filepath.WalkFunc(func(path string,info os.FileInfo,err error) error {
+			if info.IsDir(){
+				err := server.makeDirInServerPath(path,info.Mode())
+				if err != nil {
+					return err
+				}
+			} else {
+				err := server.linkDirFile(path)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
