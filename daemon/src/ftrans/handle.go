@@ -17,14 +17,14 @@ import (
 var config conf.Config
 /*
 [WS统一注释原则]
-协议说明，（该区域仅包含认证协议）
-<- 代表输出至浏览器websocket
--> 代表从浏览器websocket读取数据
-<= 代表打印Log信息
- ||  或者,仅包含其一
- && 附加动作
- CLOSE 关闭连接结束函数
- */
+1.协议说明，（该区域仅包含认证协议）
+	a.  <- 代表输出至浏览器websocket
+	b.  -> 代表从浏览器websocket读取数据
+	c.  <= 代表打印Log信息
+ 	d.  ||  或者,仅包含其一
+	e.  && 附加动作
+	f.  CLOSE 关闭连接结束函数
+*/
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -101,8 +101,9 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 		OK						  # 小学生鉴定完毕，你不是小学生
 	}
 -> 文件流........
--> OK && OK # js才看了半个小时凑合写的SDK...将就用吧,魔法必须输出两个
-
+-> OK # 对比以前的版本，魔法两次上传还是被我一不小心碰巧解决了，真是大好大好
+-> CLOSE
+## Close掉链接以后，服务端跳出写包循环，然后进行chmod 以及chown操作
 
 */
 func receiveWriteUploadFile(conn *websocket.Conn,sid int){

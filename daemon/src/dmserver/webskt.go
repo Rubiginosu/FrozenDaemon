@@ -22,7 +22,7 @@ func Webskt() {
 }
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(colorlog.ColorSprint("[Websocket]",
-		colorlog.BK_CYAN), "New Websocket OUTPUT client connected" + r.RemoteAddr)
+		colorlog.FR_CYAN), "New Websocket OUTPUT client connected" + r.RemoteAddr)
 	c, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
