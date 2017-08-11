@@ -67,11 +67,6 @@ func (server *ServerLocal) EnvPrepare() error {
 	cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+"/server"+strconv.Itoa(server.ID)+".loop", serverDataDir)
 	cmd3.Run()
 
-	//err := server.mountDirs() // 挂载其他文件
-	//if err != nil {
-	//	fmt.Println("[ERROR]" + err.Error())
-	//}
-	// 挂载结束
 	/////////////////////////////////////////////////////////
 	return nil
 }
@@ -88,24 +83,4 @@ func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
 		return newServerRuntimeConf, err
 	}
 	return newServerRuntimeConf, nil // 返回结果
-}
-
-func (server *ServerLocal) mountDirs() error {
-	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
-	execConfig, err := server.loadExecutableConfig()
-	fmt.Println(execConfig)
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command("/bin/mount", "-o", "bind", "/lib", serverDataDir+"/lib")
-	cmd.Run()
-	cmdMountBin := exec.Command("/bin/mount", "-o", "bind", "/bin", serverDataDir+"/bin")
-	cmdMountBin.Run() // 在这一版本中，将会强制挂载bin目录
-	if _, err := os.Stat("/lib64"); err == nil {
-		// 这里不用serverDataDir是处于安全考虑，万一小天才给我在../新建了一个lib64 那我把没有的lib64挂载过来就纯属多此一举了
-		cmd := exec.Command("/bin/mount", "-o", "bind", "/lib64", serverDataDir+"/lib64")
-		cmd.Run()
-	}
-	// TODO Link 方式实现Mount ,解决小白租服商会出现的类似于/bin目录被删掉之类的等等问题
-	return nil
 }
