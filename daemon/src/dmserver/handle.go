@@ -116,13 +116,13 @@ func handleRequest(request Request) Response {
 				return Response{-1, "Server Running or staring"}
 			}
 			if server.MaxHardDisk == 0 {
-				return Response{-1,"Please set MaxHardDisk！"}
+				return Response{-1, "Please set MaxHardDisk！"}
 			}
 			err2 := server.EnvPrepare()
 			if err2 != nil {
 				colorlog.ErrorPrint(err2)
 				return Response{
-					-1,"Env prepare error",
+					-1, "Env prepare error",
 				}
 			}
 			err := server.Start()
@@ -191,7 +191,7 @@ func handleRequest(request Request) Response {
 
 	case "InputLineToServer":
 		// 此方法将一行指令输入至服务端
-		if server,ok := servers[request.OperateID]; ok  {
+		if server, ok := servers[request.OperateID]; ok {
 			err := server.inputLine(request.Message)
 			if err != nil {
 				return Response{-1, err.Error()}
@@ -202,7 +202,7 @@ func handleRequest(request Request) Response {
 			return Response{-1, "Invalid Server id"}
 		}
 	case "GetServerPlayers":
-		if server,ok := servers[request.OperateID]; ok {
+		if server, ok := servers[request.OperateID]; ok {
 			b, _ := json.Marshal(server.Players)
 			return Response{-1, fmt.Sprintf("%s", b)}
 		} else {

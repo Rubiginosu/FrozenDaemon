@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"regexp"
+	"strconv"
 )
 
 // 服务器状态码
@@ -38,10 +38,9 @@ func (server *ServerLocal) Start() error {
 		"-sid=" + strconv.Itoa(server.ID),
 	}
 	if execConf.ProcDir {
-		commandArgs = append(commandArgs,"-proc")
+		commandArgs = append(commandArgs, "-proc")
 	}
-	cmd := exec.Command("./server",)
-
+	cmd := exec.Command("./server")
 
 	//#########Testing###########
 	stdoutPipe, err := cmd.StdoutPipe()
@@ -67,20 +66,20 @@ func (server *ServerLocal) Start() error {
 	if err3 != nil {
 		return err3
 	}
-	start,join,left := execConf.getRegexps()
+	start, join, left := execConf.getRegexps()
 	cmdCgroup := exec.Command("/bin/bash",
 		"../cgroup/cg.sh",
 		"cg",
 		"run",
-		"server" + strconv.Itoa(server.ID),
+		"server"+strconv.Itoa(server.ID),
 		strconv.Itoa(cmd.Process.Pid))
 	cmdCgroup.Env = os.Environ()
 	cmdCgroup.Run()
-	go servers[len(servers)-1].ProcessOutput(start,join,left) // 将三个参数传递
+	go servers[len(servers)-1].ProcessOutput(start, join, left) // 将三个参数传递
 	return nil
 }
 
-func (s *ServerRun) ProcessOutput(start,join,left *regexp.Regexp) {
+func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 	fmt.Println(s.Cmd.Process.Pid)
 	buf := bufio.NewReader(*s.StdoutPipe)
 	if _, ok := serverSaved[s.ID]; !ok {
@@ -98,7 +97,7 @@ func (s *ServerRun) ProcessOutput(start,join,left *regexp.Regexp) {
 		}
 		//fmt.Printf("%s",line)
 		s.BufLog = append(s.BufLog[1:], line)
-		s.processOutputLine(string(line),start,join,left) // string对与正则更加友好吧
+		s.processOutputLine(string(line), start, join, left) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
 		if isOut, to := IsOutput(s.ID); isOut {
 			// 向ws客户端输出.
@@ -106,7 +105,6 @@ func (s *ServerRun) ProcessOutput(start,join,left *regexp.Regexp) {
 		}
 	}
 	colorlog.LogPrint("Break for loop,server stopped or EOF. ")
-
 
 }
 
@@ -133,28 +131,28 @@ func GetServerSaved() map[int]*ServerLocal {
 	return serverSaved
 }
 
-
 func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
 	serverSaved[s.ID].Status = 0
 	colorlog.PointPrint("Server Stopped")
 }
+
 // 获取那些正则表达式
-func (e *ExecConf) getRegexps() (*regexp.Regexp,*regexp.Regexp,*regexp.Regexp){
-	startReg,err := regexp.Compile(e.StartServerRegexp)
+func (e *ExecConf) getRegexps() (*regexp.Regexp, *regexp.Regexp, *regexp.Regexp) {
+	startReg, err := regexp.Compile(e.StartServerRegexp)
 	if err != nil {
 		colorlog.ErrorPrint(err)
 		startReg = regexp.MustCompile("Done \\(.+s\\)!") // 用户自己的表达式骚写时,打印错误信息并使用系统默认表达式(1.7.2 spigot)
 	}
-	joinReg,err2 := regexp.Compile(e.NewPlayerJoinRegexp)
+	joinReg, err2 := regexp.Compile(e.NewPlayerJoinRegexp)
 	if err2 != nil {
 		colorlog.ErrorPrint(err2)
 		joinReg = regexp.MustCompile("(\\w+)\\[.+\\] logged in")
 	}
-	exitReg,err3 := regexp.Compile("")
+	exitReg, err3 := regexp.Compile("")
 	if err3 != nil {
 		colorlog.ErrorPrint(err3)
 		exitReg = regexp.MustCompile("(\\w+) left the game")
 	}
-	return startReg,joinReg,exitReg
+	return startReg, joinReg, exitReg
 }

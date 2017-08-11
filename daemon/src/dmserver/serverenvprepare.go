@@ -1,25 +1,23 @@
 package dmserver
 
 import (
-	"colorlog"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
-	"path/filepath"
 	"strings"
 )
 
 // 准备环境
 func (server *ServerLocal) EnvPrepare() error {
-	cmd := exec.Command("/bin/bash","../cgroup/cg.sh","cg",
+	cmd := exec.Command("/bin/bash", "../cgroup/cg.sh", "cg",
 		"init",
-		"server" + strconv.Itoa(server.ID),
+		"server"+strconv.Itoa(server.ID),
 		strconv.Itoa(server.MaxCpuCores),
-		strconv.Itoa(server.MaxMem),"10","10","",
-		strings.Replace(fmt.Sprintf("%4x",server.ID)," ","0",-1))
+		strconv.Itoa(server.MaxMem), "10", "10", "",
+		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
 	cmd.Env = os.Environ()
 	//  上面的替换是让服务器的id替换为四位十六进制id
 	cmd.Run()
@@ -57,22 +55,22 @@ func (server *ServerLocal) EnvPrepare() error {
 	// 为挂载文件夹做好准备
 	autoMakeDir(serverDataDir + "/lib")
 	autoMakeDir(serverDataDir + "/execPath")
-	execPath,_ := filepath.Abs("../exec")
-	cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
-	cmd2.Run()
+	//execPath,_ := filepath.Abs("../exec")
+	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
+	//cmd2.Run()
 	if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
 		autoMakeDir(serverDataDir + "/lib64")
 		// 这个谁说的准？ 哈哈～
 	}
 	// 挂载回环文件
 	fmt.Println("Mounting loop file")
-	cmd3 := exec.Command("/bin/mount", "-o", "loop",serverDataDir+"/server" + strconv.Itoa(server.ID) + ".loop", serverDataDir)
+	cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+"/server"+strconv.Itoa(server.ID)+".loop", serverDataDir)
 	cmd3.Run()
 
-	err := server.mountDirs() // 挂载其他文件
-	if err != nil {
-		fmt.Println("[ERROR]" + err.Error())
-	}
+	//err := server.mountDirs() // 挂载其他文件
+	//if err != nil {
+	//	fmt.Println("[ERROR]" + err.Error())
+	//}
 	// 挂载结束
 	/////////////////////////////////////////////////////////
 	return nil
@@ -108,39 +106,6 @@ func (server *ServerLocal) mountDirs() error {
 		cmd := exec.Command("/bin/mount", "-o", "bind", "/lib64", serverDataDir+"/lib64")
 		cmd.Run()
 	}
-	toBeMount := findMountDirs(execConfig.Mount)
-	mountDirs(toBeMount, serverDataDir)
+	// TODO Link 方式实现Mount ,解决小白租服商会出现的类似于/bin目录被删掉之类的等等问题
 	return nil
-}
-
-/*
-如果本来目录都没有当然不予挂载，有可能32位操作系统让挂/usr/lib64，这里需要鲁棒一下
-如果原目录有，目的目录没有，则新建再挂载;如果原目录也没有，则不管，跳过
-如果原目录和新目录都有，则直接挂载
-Example : dirs : {"/bin","/usr/bin"}
-Return : [
-["/bin/mount", "-o", "bind" ,"/bin", "$serverDataDir/bin"],[...]"
-*/
-func findMountDirs(dirs []string) []string {
-	var toBeMounted []string
-	for i := 0; i < len(dirs); i++ {
-		if _, err := os.Stat(dirs[i]); err == nil {
-			toBeMounted = append(toBeMounted, dirs[i])
-		}
-	} // 找到挂载目录
-
-	return toBeMounted
-}
-
-func mountDirs(dirs []string, serverDataDir string) {
-	for i := 0; i < len(dirs); i++ {
-		mountDir(dirs[i], serverDataDir)
-	}
-}
-
-func mountDir(dir, serverDataDir string) {
-	colorlog.LogPrint(fmt.Sprintf("Mounting Dir:%s\n", dir))
-	autoMakeDir(serverDataDir + dir)
-	cmd := exec.Command("/bin/mount", "-o", "bind", dir, serverDataDir+dir)
-	cmd.Run()
 }

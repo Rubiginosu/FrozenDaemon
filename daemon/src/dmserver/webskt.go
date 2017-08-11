@@ -1,13 +1,13 @@
 package dmserver
 
 import (
+	"auth"
 	"colorlog"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"time"
-	"auth"
 	"strconv"
+	"time"
 )
 
 var OutputMaps = make(map[int]*websocket.Conn, 0)
@@ -22,7 +22,7 @@ func Webskt() {
 }
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(colorlog.ColorSprint("[Websocket]",
-		colorlog.FR_CYAN), "New Websocket OUTPUT client connected" + r.RemoteAddr)
+		colorlog.FR_CYAN), "New Websocket OUTPUT client connected"+r.RemoteAddr)
 	c, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -41,7 +41,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	sid := auth.VerifyKey(string(message)) // 强转String再传入Auth
 	if sid < 0 {
-		c.WriteMessage(websocket.TextMessage,[]byte("Key Verified failed..."))
+		c.WriteMessage(websocket.TextMessage, []byte("Key Verified failed..."))
 		return
 	}
 	// 上面检测sid。

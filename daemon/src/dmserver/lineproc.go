@@ -8,7 +8,7 @@ import (
 /*
 本文件用于处理一行蜜汁代码
 */
-func (s *ServerRun) processOutputLine(line string ,startReg,joinReg,leftReg *regexp.Regexp) {
+func (s *ServerRun) processOutputLine(line string, startReg, joinReg, leftReg *regexp.Regexp) {
 	if startReg.MatchString(line) {
 		colorlog.PointPrint("Server Started!")
 		if server, ok := serverSaved[s.ID]; ok {

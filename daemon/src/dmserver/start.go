@@ -1,6 +1,7 @@
 package dmserver
 
 import (
+	"auth"
 	"colorlog"
 	"conf"
 	"encoding/json"
@@ -9,7 +10,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"auth"
 )
 
 func StartDaemonServer(conf conf.Config) {

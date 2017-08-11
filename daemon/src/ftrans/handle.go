@@ -3,18 +3,20 @@ package ftrans
 import (
 	"auth"
 	"colorlog"
+	"conf"
+	"errors"
+	"fmt"
+	"github.com/gorilla/websocket"
 	"net/http"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"github.com/gorilla/websocket"
-	"os"
-	"fmt"
-	"errors"
-	"os/exec"
-	"conf"
 )
+
 var config conf.Config
+
 /*
 [WS统一注释原则]
 1.协议说明，（该区域仅包含认证协议）
@@ -51,6 +53,7 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 /*
 
 +--------------------------------------------------------------------------
@@ -60,16 +63,16 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 +--------------------------------------------------------------------------
 
 
- */
+*/
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(colorlog.ColorSprint("[Websocket]",
-		colorlog.FR_CYAN), "New Websocket UPLOAD client connected" + r.RemoteAddr)
+		colorlog.FR_CYAN), "New Websocket UPLOAD client connected"+r.RemoteAddr)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		colorlog.ErrorPrint(err)
 		return
 	}
-	_,message,err2 := conn.ReadMessage()
+	_, message, err2 := conn.ReadMessage()
 	if err2 != nil {
 		colorlog.ErrorPrint(err2)
 		conn.Close()
@@ -79,17 +82,15 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	sid := auth.VerifyKey(string(message))
 	if sid < 0 {
 		colorlog.LogPrint("Websocket client auth failed")
-		conn.WriteMessage(websocket.TextMessage,[]byte("Key Verified failed"))
+		conn.WriteMessage(websocket.TextMessage, []byte("Key Verified failed"))
 		conn.Close()
 		return
 	}
 	colorlog.LogPrint("Websocket client auth ok.sid:" + strconv.Itoa(sid))
-	conn.WriteMessage(websocket.TextMessage,[]byte("Verified key"))
-	receiveWriteUploadFile(conn,sid)
-
+	conn.WriteMessage(websocket.TextMessage, []byte("Verified key"))
+	receiveWriteUploadFile(conn, sid)
 
 }
-
 
 /*
 -> 文件名|文件权限 #  | 符号左右两边的空格会包含进去
@@ -106,40 +107,39 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 ## Close掉链接以后，服务端跳出写包循环，然后进行chmod 以及chown操作
 
 */
-func receiveWriteUploadFile(conn *websocket.Conn,sid int){
-	_,message,err := conn.ReadMessage()
+func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
+	_, message, err := conn.ReadMessage()
 	if err != nil {
 		colorlog.ErrorPrint(err)
 		conn.Close()
 		return
 	}
-	name,mode,err2 := parseUploadMessage(message)
+	name, mode, err2 := parseUploadMessage(message)
 	if err2 != nil {
 		colorlog.ErrorPrint(err2)
-		conn.WriteMessage(websocket.TextMessage,[]byte(err2.Error()))
+		conn.WriteMessage(websocket.TextMessage, []byte(err2.Error()))
 		conn.Close()
 		return
 	}
 	current := filepath.Clean("../servers/server" + strconv.Itoa(sid) + "/" + name) // 过滤检查
-	if strings.Index(current,"../servers/server" + strconv.Itoa(sid)) < 0 {
-		conn.WriteMessage(websocket.TextMessage,[]byte("Permission denied."))
+	if strings.Index(current, "../servers/server"+strconv.Itoa(sid)) < 0 {
+		conn.WriteMessage(websocket.TextMessage, []byte("Permission denied."))
 		conn.Close()
 		return
 	}
 	colorlog.LogPrint("Client request to upload file: " + name + " and mode:" + mode)
-	conn.WriteMessage(websocket.TextMessage,[]byte("Ready to upload"))
+	conn.WriteMessage(websocket.TextMessage, []byte("Ready to upload"))
 
-
-	file,err3 := os.OpenFile(current,os.O_TRUNC | os.O_WRONLY | os.O_CREATE | os.O_SYNC,777)
+	file, err3 := os.OpenFile(current, os.O_TRUNC|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 777)
 	if err3 != nil {
 		colorlog.ErrorPrint(err3)
-		conn.WriteMessage(websocket.TextMessage,[]byte(err3.Error()))
+		conn.WriteMessage(websocket.TextMessage, []byte(err3.Error()))
 		conn.Close()
 		return
 	}
 	for {
 		//conn.ReadMessage()
-		_,message,err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if err.Error() != "websocket: close 1005 (no status)" {
 				colorlog.ErrorPrint(err)
@@ -150,30 +150,30 @@ func receiveWriteUploadFile(conn *websocket.Conn,sid int){
 			}
 
 		}
-		_,err2 := file.Write(message)
+		_, err2 := file.Write(message)
 		if err != nil {
 			colorlog.ErrorPrint(err2)
-			conn.WriteMessage(websocket.TextMessage,[]byte(err2.Error()))
+			conn.WriteMessage(websocket.TextMessage, []byte(err2.Error()))
 			conn.Close()
 			return
 		}
-		conn.WriteMessage(websocket.TextMessage,[]byte("OK"))
+		conn.WriteMessage(websocket.TextMessage, []byte("OK"))
 	}
 	file.Close()
-	cmd := exec.Command("/bin/chmod",string(mode),current)
-	colorlog.LogPrint("Running :/bin/chmod"+" "+string(mode)+" "+current)
+	cmd := exec.Command("/bin/chmod", string(mode), current)
+	colorlog.LogPrint("Running :/bin/chmod" + " " + string(mode) + " " + current)
 	err4 := cmd.Run()
-	if err4 != nil{
+	if err4 != nil {
 		colorlog.ErrorPrint(err3)
-		conn.WriteMessage(websocket.TextMessage,[]byte(err3.Error()))
+		conn.WriteMessage(websocket.TextMessage, []byte(err3.Error()))
 		conn.Close()
 	}
 	os.Chown(current, config.DaemonServer.UserId, config.DaemonServer.UserId)
 }
-func parseUploadMessage(message []byte) (string,string,error){
-	res := strings.Split(string(message),"|")
+func parseUploadMessage(message []byte) (string, string, error) {
+	res := strings.Split(string(message), "|")
 	if len(res) < 2 {
-		return "","",errors.New("Invalid file info format.")
+		return "", "", errors.New("Invalid file info format.")
 	}
-	return res[0],res[1],nil
+	return res[0], res[1], nil
 }
