@@ -7,11 +7,12 @@
 	},
 	"DaemonServer": {
 		"Port": 52023,
-		"VerifyCode": "cM2hQcge1iIxn1XZCx45PBeIPLb3m56BZjpXgMHPshpycUoJtAJBFKny2SUIIxST",
+		"VerifyCode": "hurJkgS5Wp6nfzuK5r0IMXh36TqzRnSJiIgHCCwjyISqSyMTOkJpJOuLJAGqKUqV",
 		"DefaultBufLength": 256,
 		"ValidationKeyOutDateTimeSeconds": 20,
 		"UserId": 100000,
-		"HardDiskMethod": "Mount"
+		"HardDiskMethod": "Link",
+		"BlockDeviceMajMim": "8:0"
 	},
 	"FileTransportServer": {
 		"Port": 52025

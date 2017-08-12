@@ -75,6 +75,10 @@ func handleRequest(request Request) Response {
 			1,
 			1024,
 			0,
+			50,
+			50,
+			100,
+			100,
 			time.Now().Unix() + 3600,
 		}
 		// 序列化b来储存。
@@ -115,8 +119,8 @@ func handleRequest(request Request) Response {
 			if server.Status != SERVER_STATUS_CLOSED {
 				return Response{-1, "Server Running or staring"}
 			}
-			if server.MaxHardDisk == 0 {
-				return Response{-1, "Please set MaxHardDisk！"}
+			if server.MaxHardDiskCapacity == 0 {
+				return Response{-1, "Please set MaxHardDiskCapacity！"}
 			}
 			err2 := server.EnvPrepare()
 			if err2 != nil {
@@ -223,6 +227,12 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 		// 判断被设置那个服务器是否存在于映射
 		for i := 0; i < len(attrs); i++ {
 			switch attrs[i].AttrName {
+			case "MaxCpuRate":
+				rate,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxCpuUtilizatioRate = rate
 			case "MaxMemory":
 				mem, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
@@ -231,12 +241,12 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 				server.MaxMem = mem
 			case "Executable":
 				server.Executable = attrs[i].AttrValue
-			case "MaxHardDisk":
+			case "MaxHardDiskCapacity":
 				disk, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}
-				server.MaxHardDisk = disk
+				server.MaxHardDiskCapacity = disk
 			case "Name":
 				server.Name = attrs[i].AttrValue
 			case "Expire":
@@ -245,6 +255,30 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 					return err
 				}
 				server.Expire = server.Expire + int64(expire) - 3600
+			case "MaxHardDiskWriteSpeed":
+				speed,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxHardDiskWriteSpeed = speed
+			case "MaxHardDiskReadSpeed":
+				speed,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxHardDiskReadSpeed = speed
+			case "MaxDlBandwidth":
+				width,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxDlBandwidth = width
+			case "MaxUpBandwidth":
+				width,err := strconv.Atoi(attrs[i].AttrValue)
+				if err != nil {
+					return err
+				}
+				server.MaxUpBandwidth = width
 			}
 		}
 	}

@@ -60,10 +60,15 @@ type ServerLocal struct {
 		1 - 正常运行
 		2 - 正在开启
 	*/
-	MaxCpuCores int   // CPU核心数
-	MaxMem      int   // 最大内存
-	MaxHardDisk int   // 磁盘空间，开服时就必须设定好，以后不允许改变.
-	Expire      int64 // 过期时间，Unix时间戳
+	MaxCpuUtilizatioRate  int // CPU使用率
+	MaxMem                int // 最大内存
+	MaxHardDiskCapacity   int // 磁盘空间，开服时就必须设定好，以后不允许改变.
+	MaxHardDiskReadSpeed  int // 磁盘最大读速率
+	MaxHardDiskWriteSpeed int // 磁盘最大写速率
+	// 读写速率单位均为 M/s
+	MaxUpBandwidth        int // 最大上行带宽 单位 Mb/s // b ： bit.
+	MaxDlBandwidth        int // 最大下行带宽 Mb/s
+	Expire                int64 // 过期时间，Unix时间戳
 }
 
 type ServerRun struct {

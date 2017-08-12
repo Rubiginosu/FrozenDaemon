@@ -6,6 +6,12 @@ import (
 	"math/rand"
 	"os"
 	"time"
+	"fmt"
+	"colorlog"
+	"os/exec"
+	"errors"
+	"regexp"
+	"strings"
 )
 const(
 	/**
@@ -36,6 +42,7 @@ type DaemonServer struct {
 	ValidationKeyOutDateTimeSeconds float64
 	UserId                          int
 	HardDiskMethod                  string
+	BlockDeviceMajMim	string
 }
 
 type serverManager struct {
@@ -48,7 +55,6 @@ type serverManager struct {
 type FileTransportServer struct {
 	Port int
 }
-
 func GetConfig(filename string) (Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -65,11 +71,6 @@ func GetConfig(filename string) (Config, error) {
 }
 
 func GenerateConfig(filepath string) Config {
-	file, err := os.Create(filepath)
-	defer file.Close()
-	if err != nil {
-		panic(err)
-	}
 	var v Config = Config{
 		serverManager{"../data/servers.json", "../data/modules.json", 52024, "8:0"},
 		DaemonServer{52023,
@@ -77,9 +78,52 @@ func GenerateConfig(filepath string) Config {
 			256,
 			20,
 			100000,
-		HDM_LINK}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+			HDM_LINK,""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
+	file, err := os.Create(filepath)
+	defer file.Close()
+	if err != nil {
+		panic(err)
+	}
+	colorlog.WarningPrint("Your hardDisk Maj:Min not configured.")
+	colorlog.PointPrint("This will help you input a correct Maj:Min information.")
+	colorlog.PromptPrint("This program will show a lsblk info and you should choose a info like this:")
+	colorlog.PromptPrint("")
+	fmt.Println(
+		`
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+sda      ` + colorlog.ColorSprint("8:0",colorlog.FR_CYAN) + `    0 931.5G  0 disk
+├─sda2   8:2    0 927.1G  0 part /
+├─sda3   8:3    0   3.9G  0 part [SWAP]
+└─sda1   8:1    0   512M  0 part /boot/efi
+		`)
+	colorlog.PromptPrint("And you should choose " + colorlog.ColorSprint("8:0",colorlog.FR_CYAN))
+	for {
+		majMin := ""
+
+		cmd := exec.Command("/bin/lsblk")
+		output,err2 := cmd.Output()
+		if err2 != nil {
+			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err2.Error()))
+			os.Exit(-2) // 退出程序
+		}
+		colorlog.PromptPrint("Please choose: Your main hard disk Maj:Min\n" )
+		fmt.Println(string(output))
+		colorlog.PromptPrint("Please input your hardDisk Maj:Min number.")
+		fmt.Scanf("%s",&majMin)
+		if err := validateMajMin(majMin,output);err == nil{
+			v.DaemonServer.BlockDeviceMajMim = majMin
+			break
+		} else {
+			colorlog.PromptPrint("Your majMin may not valid.")
+			colorlog.PromptPrint("Reason" + err.Error())
+			colorlog.PromptPrint("the correct majMin likes this : ")
+			colorlog.PromptPrint("8:0")
+		}
+	}
+
+
 	s, _ := json.MarshalIndent(v, "", "\t")
 	file.Write(s)
 
@@ -96,4 +140,15 @@ func RandString(length int) string {
 		result = append(result, bytes[r.Intn(len(bytes))])
 	}
 	return string(result)
+}
+
+func validateMajMin(majMin string,output []byte) error{
+	if !regexp.MustCompile("\\w+:\\w+").Match([]byte(majMin)) {
+		return errors.New("A correct Maj:Min must like Numbers:Numbers")
+	}
+	if strings.Index(string(output),majMin) >= 0 {
+		return nil
+	} else {
+		return errors.New("Maj:Min must contain in output.")
+	}
 }

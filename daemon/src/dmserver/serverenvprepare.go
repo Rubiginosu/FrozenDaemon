@@ -17,11 +17,16 @@ import (
 // 准备环境
 func (server *ServerLocal) EnvPrepare() error {
 	colorlog.PointPrint("You are running in " + config.DaemonServer.HardDiskMethod + " HardDisk method.")
-	cmd := exec.Command("/bin/bash", "../cgroup/cg.sh", "cg",
+	cmd := exec.Command("/bin/bash",
+		"../cgroup/cg.sh",
+		"cg",
 		"init",
 		"server"+strconv.Itoa(server.ID),
-		strconv.Itoa(server.MaxCpuCores),
-		strconv.Itoa(server.MaxMem), "10", "10", "8:0",
+		strconv.Itoa(server.MaxCpuUtilizatioRate),
+		strconv.Itoa(server.MaxMem),
+		strconv.Itoa(server.MaxHardDiskReadSpeed),
+		strconv.Itoa( server.MaxHardDiskWriteSpeed),
+		config.DaemonServer.BlockDeviceMajMim,
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
 	cmd.Env = os.Environ()
 	//  上面的替换是让服务器的id替换为四位十六进制id
@@ -40,11 +45,11 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.PointPrint("No loop file..." )
 		colorlog.LogPrint("Frozen Go Daemon will just make a new loop file")
 		//  新增 loop
-		if server.MaxHardDisk == 0 {
-			server.MaxHardDisk = 10240
+		if server.MaxHardDiskCapacity == 0 {
+			server.MaxHardDiskCapacity = 10240
 		}
 		cmd := exec.Command("/bin/dd", "if=/dev/zero", "bs=1024", // MaxHardDisk单位kb
-			"count="+strconv.Itoa(server.MaxHardDisk), "of=../servers/server"+strconv.Itoa(server.ID)+".loop")
+			"count="+strconv.Itoa(server.MaxHardDiskCapacity), "of=../servers/server"+strconv.Itoa(server.ID)+".loop")
 		colorlog.LogPrint("Writing File with dd")
 		output,err := cmd.CombinedOutput()
 		if err != nil {
@@ -153,7 +158,7 @@ func (server *ServerLocal) linkDirs(conf ExecConf) error {
 			}
 			return nil
 		}))
-		if err != nil {
+		if err != nil && err.Error() == "Not a correct path in server execFile."{
 			return err
 		}
 	}

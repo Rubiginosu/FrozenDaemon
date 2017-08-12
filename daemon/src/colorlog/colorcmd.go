@@ -44,3 +44,7 @@ func PointPrint(message string) {
 	fmt.Print(ColorSprint("[Point]", FR_PURPLE))
 	fmt.Println(message)
 }
+func PromptPrint(message string){
+	fmt.Print(ColorSprint("[Prompt]",FR_GREEN))
+	fmt.Println(message)
+}
