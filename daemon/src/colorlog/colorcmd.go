@@ -38,7 +38,7 @@ func LogPrint(message string) {
 }
 
 func WarningPrint(message string) {
-	fmt.Println(ColorSprint("[Warning]"+message, FR_YELLO))
+	fmt.Println(ColorSprint("[Warning]", FR_YELLO),message)
 }
 func PointPrint(message string) {
 	fmt.Print(ColorSprint("[Point]", FR_PURPLE))

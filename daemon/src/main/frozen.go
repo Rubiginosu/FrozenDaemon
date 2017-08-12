@@ -32,6 +32,17 @@ func main() {
 	}
 	colorlog.LogPrint("Reading config file")
 	config, _ = conf.GetConfig(FILE_CONFIGURATION)
+	if config.DaemonServer.HardDiskMethod == conf.HDM_MOUNT {
+		colorlog.WarningPrint("You are running in MOUNT HardDisk Method!")
+		colorlog.LogPrint("You must know its risk and willing to take responsibility for incorrect use")
+		colorlog.WarningPrint(fmt.Sprint("Please type:",colorlog.ColorSprint("I_KNOW",colorlog.FR_PURPLE)))
+		check := ""
+		fmt.Scanf("%s",&check)
+		if check != "I_KNOW"{
+			colorlog.WarningPrint("You must know the warning")
+			return
+		}
+	}
 	colorlog.LogPrint("Configuration get done")
 	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {

@@ -9,77 +9,109 @@ import (
 	"strconv"
 	"strings"
 	"path/filepath"
+	"errors"
+	"colorlog"
+	"conf"
 )
 
 // 准备环境
 func (server *ServerLocal) EnvPrepare() error {
+	colorlog.PointPrint("You are running in " + config.DaemonServer.HardDiskMethod + " HardDisk method.")
 	cmd := exec.Command("/bin/bash", "../cgroup/cg.sh", "cg",
 		"init",
 		"server"+strconv.Itoa(server.ID),
 		strconv.Itoa(server.MaxCpuCores),
-		strconv.Itoa(server.MaxMem), "10", "10", "",
+		strconv.Itoa(server.MaxMem), "10", "10", "8:0",
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
 	cmd.Env = os.Environ()
 	//  上面的替换是让服务器的id替换为四位十六进制id
-	err := cmd.Run()
+	output,err := cmd.CombinedOutput()
 	if err != nil {
-		return err
+		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
+		colorlog.LogPrint("Reaseon:" + string(output))
+		colorlog.WarningPrint("This server's source may not valid")
 	}
 	fmt.Printf("Preparing server runtime for ServerID:%d \n", server.ID)
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
 	// 文件夹不存在则创建文件夹
 	autoMakeDir(serverDataDir + "/serverData")
 
-	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil { //检查loop回环文件是否存在，如果不存在则创建
-		fmt.Println("No loop file found!")
+	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil && config.DaemonServer.HardDiskMethod != conf.HDM_LINK{ //检查loop回环文件是否存在，如果不存在则创建
+		colorlog.PointPrint("No loop file..." )
+		colorlog.LogPrint("Frozen Go Daemon will just make a new loop file")
 		//  新增 loop
 		if server.MaxHardDisk == 0 {
 			server.MaxHardDisk = 10240
 		}
 		cmd := exec.Command("/bin/dd", "if=/dev/zero", "bs=1024", // MaxHardDisk单位kb
 			"count="+strconv.Itoa(server.MaxHardDisk), "of=../servers/server"+strconv.Itoa(server.ID)+".loop")
-		fmt.Print("Writing file...")
-		err := cmd.Run()
+		colorlog.LogPrint("Writing File with dd")
+		output,err := cmd.CombinedOutput()
 		if err != nil {
-			return err
+			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
+			colorlog.LogPrint("Reaseon:" + string(output))
+			return errors.New("Error with dd output loop file." + err.Error())
 		}
-		fmt.Println("Done")
+		colorlog.LogPrint("Done.")
 		// 用mkfs格式化
-		fmt.Println("Formatting...")
-		cmd2 := exec.Command("/sbin/mkfs.ext4", serverDataDir+"/server"+strconv.Itoa(server.ID)+".loop")
-		err2 := cmd2.Run()
-		fmt.Println("Done")
-		if err2 != nil {
-			fmt.Println(err2)
-			return err2
+		colorlog.LogPrint("Formatting loop file. Using mkfs.ext4")
+		cmd2 := exec.Command("/sbin/mkfs.ext4", serverDataDir+".loop")
+		colorlog.LogPrint("Done")
+		output,err2 := cmd2.CombinedOutput()
+		if err != nil{
+			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err2.Error()))
+			colorlog.LogPrint("Reaseon:" + string(output))
+
+			return errors.New("Error with mkfs.ext4:"+ err2.Error())
 		}
 
 	}
-	fmt.Println("Preparing server data dir.")
+	colorlog.LogPrint("Preparing server data dir.")
 	// 为挂载文件夹做好准备
-	autoMakeDir(serverDataDir + "/lib")
 	autoMakeDir(serverDataDir + "/execPath")
 	//execPath,_ := filepath.Abs("../exec")
 	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
 	//cmd2.Run()
-	if _, err := os.Stat("/lib64"); err == nil { // 32位系统貌似没有lib64,那就不新建了
-		autoMakeDir(serverDataDir + "/lib64")
-		// 这个谁说的准？ 哈哈～
-	}
 	// 挂载回环文件
-	fmt.Println("Mounting loop file")
-	cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+"/server"+strconv.Itoa(server.ID)+".loop", serverDataDir)
-	err2 := cmd3.Run()
-	if err2 != nil {
-		return err2
+	if config.DaemonServer.HardDiskMethod != conf.HDM_LINK {
+		colorlog.LogPrint("The ["+config.DaemonServer.HardDiskMethod+"] method will limit the hardDisk space,so mounting loop file now.")
+		colorlog.LogPrint("Mounting loop file")
+		cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+".loop", serverDataDir)
+		output3,err3 := cmd3.CombinedOutput()
+		if err3 != nil && strings.Index(string(output),"is already mounted") <= 0{
+			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
+			colorlog.LogPrint("Reaseon:" + string(output3))
+			//return errors.New("Error with mounting loop file:"+err.Error())
+		}
 	}
-	conf,err3 := server.loadExecutableConfig()
+
+	execConfig,err3 := server.loadExecutableConfig()
 	if err3 != nil {
 		return err3
 	}
-	err4 := server.linkDirs(conf)
-	/////////////////////////////////////////////////////////
-	return err4
+	switch config.DaemonServer.HardDiskMethod {
+	case conf.HDM_MOUNT:
+	case conf.HDM_LINK:
+		err := server.linkDirs(execConfig)
+		return err
+	case conf.HDM_COPY:
+		for _,v := range execConfig.Link {
+			if _, dirExists := os.Stat(serverDataDir + "/" + v); dirExists != nil{
+				cmd := exec.Command("/bin/cp","-R",v,serverDataDir + "/" + v)
+				output,err := cmd.CombinedOutput()
+				if err != nil {
+					colorlog.ErrorPrint(errors.New("Error with copy files:" + err.Error()))
+					colorlog.LogPrint("Reason:" + string(output))
+					colorlog.PointPrint("Server starting transaction has been stopped.")
+					return errors.New("Error with copy files:" + err.Error())
+				}
+			}
+
+		}
+		return nil
+	}
+	return errors.New("Unexpected error")
+
 }
 
 func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
@@ -102,9 +134,12 @@ func (server *ServerLocal) makeDirInServerPath(path string,mode os.FileMode) err
 func (server *ServerLocal) linkDirFile (oldName string) error{
 	return os.Link(oldName,"../servers/server" + strconv.Itoa(server.ID) + "/" +oldName)
 }
-func (server *ServerLocal)linkDirs(conf ExecConf) error {
+func (server *ServerLocal) linkDirs(conf ExecConf) error {
 	for _,v := range conf.Link {
 		err := filepath.Walk(v,filepath.WalkFunc(func(path string,info os.FileInfo,err error) error {
+			if info == nil {
+				return errors.New("Not a correct path in server execFile.")
+			}
 			if info.IsDir(){
 				err := server.makeDirInServerPath(path,info.Mode())
 				if err != nil {
