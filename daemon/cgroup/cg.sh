@@ -13,7 +13,13 @@ case $1 in
 				let mmb=1024*1024*mmb
 				let tmp=tmp*cpux/100
 				echo $tmp > /sys/fs/cgroup/cpu/${3}/cpu.cfs_quota_us
+				if test $? then
+				 return 1;
+				fi
 				echo $mmb > /sys/fs/cgroup/memory/${3}/memory.max_usage_in_bytes
+				if test $? then
+				 return 1;
+				fi
 				echo "0x0001${9}" > /sys/fs/cgroup/net_cls/${3}/net_cls.classid
 				echo "${8} ${rmb}" > /sys/fs/cgroup/blkio/${3}/blkio.throttle.read_bps_device
 				echo "${8} ${wmb}" > /sys/fs/cgroup/blkio/${3}/blkio.throttle.write_bps_device
@@ -45,4 +51,4 @@ case $1 in
 	service cgconfig restart;
 	;;
 	esac
-	
+	return 0;
