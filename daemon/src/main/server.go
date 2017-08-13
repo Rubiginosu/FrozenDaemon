@@ -19,7 +19,7 @@ import "C"
 
 func main() {
 	var (
-		uid     int
+		uid     int    // 要运行这个的程序的身份uid，随便指定一个.
 		command string // command: ping www.baidu.com
 		proc    bool   // if proc -> mount /proc with "mount -t proc none /proc" in container
 		sid     int    // Server id ,write to cgroups .
@@ -33,12 +33,14 @@ func main() {
 	syscall.Unshare(syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_FILES | syscall.CLONE_FS)
 	root := "../servers/server" + strconv.Itoa(sid)
 	syscall.Chroot(root)
+
 	if proc {
+		//os.Mkdir("/proc",555)
 		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")
 		cmd.Run() // 挂载proc
 	}
 
-	os.Chdir(root + "/serverData")
+	os.Chdir("serverData") // 都已经Chroot了，思想要开放....
 	err4 := syscall.Setgroups([]int{uid})
 	if err4 != nil {
 		panic(err4)

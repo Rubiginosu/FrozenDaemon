@@ -25,24 +25,24 @@ func (server *ServerLocal) EnvPrepare() error {
 		strconv.Itoa(server.MaxCpuUtilizatioRate),
 		strconv.Itoa(server.MaxMem),
 		strconv.Itoa(server.MaxHardDiskReadSpeed),
-		strconv.Itoa( server.MaxHardDiskWriteSpeed),
+		strconv.Itoa(server.MaxHardDiskWriteSpeed),
 		config.DaemonServer.BlockDeviceMajMim,
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
 	cmd.Env = os.Environ()
 	//  上面的替换是让服务器的id替换为四位十六进制id
-	output,err := cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
 		colorlog.LogPrint("Reaseon:" + string(output))
-		colorlog.WarningPrint("This server's source may not valid")
+		colorlog.PromptPrint("This server's source may not valid")
 	}
-	fmt.Printf("Preparing server runtime for ServerID:%d \n", server.ID)
+	colorlog.PointPrint("Preparing server runtime for ServerID:" + strconv.Itoa(server.ID))
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
-	// 文件夹不存在则创建文件夹
-	autoMakeDir(serverDataDir + "/serverData")
-
-	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil && config.DaemonServer.HardDiskMethod != conf.HDM_LINK{ //检查loop回环文件是否存在，如果不存在则创建
-		colorlog.PointPrint("No loop file..." )
+	// 文件夹不存在则创建文件夹,并且将所有者设置为用户
+	os.MkdirAll(serverDataDir + "/serverData",0750)
+	os.Chown(serverDataDir + "/serverData",config.DaemonServer.UserId,0)
+	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil && config.DaemonServer.HardDiskMethod != conf.HDM_LINK { //检查loop回环文件是否存在，如果不存在则创建
+		colorlog.PointPrint("No loop file...")
 		colorlog.LogPrint("Frozen Go Daemon will just make a new loop file")
 		//  新增 loop
 		if server.MaxHardDiskCapacity == 0 {
@@ -51,7 +51,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		cmd := exec.Command("/bin/dd", "if=/dev/zero", "bs=1024", // MaxHardDisk单位kb
 			"count="+strconv.Itoa(server.MaxHardDiskCapacity), "of=../servers/server"+strconv.Itoa(server.ID)+".loop")
 		colorlog.LogPrint("Writing File with dd")
-		output,err := cmd.CombinedOutput()
+		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
 			colorlog.LogPrint("Reaseon:" + string(output))
@@ -62,35 +62,35 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.LogPrint("Formatting loop file. Using mkfs.ext4")
 		cmd2 := exec.Command("/sbin/mkfs.ext4", serverDataDir+".loop")
 		colorlog.LogPrint("Done")
-		output,err2 := cmd2.CombinedOutput()
-		if err != nil{
+		output, err2 := cmd2.CombinedOutput()
+		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err2.Error()))
 			colorlog.LogPrint("Reaseon:" + string(output))
 
-			return errors.New("Error with mkfs.ext4:"+ err2.Error())
+			return errors.New("Error with mkfs.ext4:" + err2.Error())
 		}
 
 	}
 	colorlog.LogPrint("Preparing server data dir.")
 	// 为挂载文件夹做好准备
-	autoMakeDir(serverDataDir + "/execPath")
+	//autoMakeDir(serverDataDir + "/execPath")
 	//execPath,_ := filepath.Abs("../exec")
 	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
 	//cmd2.Run()
 	// 挂载回环文件
 	if config.DaemonServer.HardDiskMethod != conf.HDM_LINK {
-		colorlog.LogPrint("The ["+config.DaemonServer.HardDiskMethod+"] method will limit the hardDisk space,so mounting loop file now.")
+		colorlog.LogPrint("The [" + config.DaemonServer.HardDiskMethod + "] method will limit the hardDisk space,so mounting loop file now.")
 		colorlog.LogPrint("Mounting loop file")
 		cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+".loop", serverDataDir)
-		output3,err3 := cmd3.CombinedOutput()
-		if err3 != nil && strings.Index(string(output),"is already mounted") <= 0{
+		output3, err3 := cmd3.CombinedOutput()
+		if err3 != nil && strings.Index(string(output), "is already mounted") <= 0 {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
 			colorlog.LogPrint("Reaseon:" + string(output3))
 			//return errors.New("Error with mounting loop file:"+err.Error())
 		}
 	}
 
-	execConfig,err3 := server.loadExecutableConfig()
+	execConfig, err3 := server.loadExecutableConfig()
 	if err3 != nil {
 		return err3
 	}
@@ -100,10 +100,10 @@ func (server *ServerLocal) EnvPrepare() error {
 		err := server.linkDirs(execConfig)
 		return err
 	case conf.HDM_COPY:
-		for _,v := range execConfig.Link {
-			if _, dirExists := os.Stat(serverDataDir + "/" + v); dirExists != nil{
-				cmd := exec.Command("/bin/cp","-R",v,serverDataDir + "/" + v)
-				output,err := cmd.CombinedOutput()
+		for _, v := range execConfig.Link {
+			if _, dirExists := os.Stat(serverDataDir + "/" + v); dirExists != nil {
+				cmd := exec.Command("/bin/cp", "-R", v, serverDataDir+"/"+v)
+				output, err := cmd.CombinedOutput()
 				if err != nil {
 					colorlog.ErrorPrint(errors.New("Error with copy files:" + err.Error()))
 					colorlog.LogPrint("Reason:" + string(output))
@@ -133,20 +133,42 @@ func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
 	return newServerRuntimeConf, nil // 返回结果
 }
 
-func (server *ServerLocal) makeDirInServerPath(path string,mode os.FileMode) error{
-	return os.Mkdir("../servers/server" + strconv.Itoa(server.ID) + "/" + path,mode)
+func (server *ServerLocal) makeDirInServerPath(path string, mode os.FileMode) error {
+	if filepath.IsAbs(path) {
+		return os.MkdirAll(server.getLinkDir()+path, mode)
+	} else {
+		re, _ := filepath.Abs("../")
+		current, _ := filepath.Abs(path)
+		relPath, _ := filepath.Rel(re, current)
+		//colorlog.LogPrint(server.getLinkDir() + "/" + relPath)
+		return os.MkdirAll(server.getLinkDir()+"/"+relPath, mode)
+	}
 }
-func (server *ServerLocal) linkDirFile (oldName string) error{
-	return os.Link(oldName,"../servers/server" + strconv.Itoa(server.ID) + "/" +oldName)
+
+func (server *ServerLocal) getLinkDir() string {
+	return "../servers/server" + strconv.Itoa(server.ID) + "/"
+}
+
+func (server *ServerLocal) linkDirFile(oldName string) error {
+	if filepath.IsAbs(oldName) {
+		colorlog.LogPrint("../servers/server" + strconv.Itoa(server.ID) + "/" + oldName)
+		return os.Link(oldName, "../servers/server"+strconv.Itoa(server.ID)+"/"+oldName)
+	} else {
+		re, _ := filepath.Abs("../")
+		current, _ := filepath.Abs(oldName)
+		relPath, _ := filepath.Rel(re, current)
+		return os.Link(oldName, server.getLinkDir()+"/"+relPath)
+	}
 }
 func (server *ServerLocal) linkDirs(conf ExecConf) error {
-	for _,v := range conf.Link {
-		err := filepath.Walk(v,filepath.WalkFunc(func(path string,info os.FileInfo,err error) error {
+	links := append(conf.Link, "../exec")
+	for _, v := range links {
+		err := filepath.Walk(v, filepath.WalkFunc(func(path string, info os.FileInfo, err error) error {
 			if info == nil {
 				return errors.New("Not a correct path in server execFile.")
 			}
-			if info.IsDir(){
-				err := server.makeDirInServerPath(path,info.Mode())
+			if info.IsDir() {
+				err := server.makeDirInServerPath(path, info.Mode())
 				if err != nil {
 					return err
 				}
@@ -158,8 +180,12 @@ func (server *ServerLocal) linkDirs(conf ExecConf) error {
 			}
 			return nil
 		}))
-		if err != nil && err.Error() == "Not a correct path in server execFile."{
-			return err
+		if err != nil {
+			if err.Error() == "Not a correct path in server execFile." {
+				return err
+			} else {
+				colorlog.WarningPrint(err.Error())
+			}
 		}
 	}
 	return nil

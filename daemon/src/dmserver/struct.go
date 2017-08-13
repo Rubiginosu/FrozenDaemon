@@ -66,9 +66,9 @@ type ServerLocal struct {
 	MaxHardDiskReadSpeed  int // 磁盘最大读速率
 	MaxHardDiskWriteSpeed int // 磁盘最大写速率
 	// 读写速率单位均为 M/s
-	MaxUpBandwidth        int // 最大上行带宽 单位 Mb/s // b ： bit.
-	MaxDlBandwidth        int // 最大下行带宽 Mb/s
-	Expire                int64 // 过期时间，Unix时间戳
+	MaxUpBandwidth int   // 最大上行带宽 单位 Mb/s // b ： bit.
+	MaxDlBandwidth int   // 最大下行带宽 Mb/s
+	Expire         int64 // 过期时间，Unix时间戳
 }
 
 type ServerRun struct {
@@ -84,4 +84,9 @@ type ServerAttrElement struct {
 	// eg server.MaxMemory = 1024
 	AttrName  string // Attribute Name
 	AttrValue string // Attribute Value
+}
+type ServerPathFileInfo struct {
+	Name    string // 文件名
+	Mode    string // 文件Unix模式位
+	ModTime int64 // 文件修改时间
 }

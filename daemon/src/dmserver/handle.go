@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"os"
 )
 
 var config conf.Config
@@ -122,13 +123,6 @@ func handleRequest(request Request) Response {
 			if server.MaxHardDiskCapacity == 0 {
 				return Response{-1, "Please set MaxHardDiskCapacity！"}
 			}
-			err2 := server.EnvPrepare()
-			if err2 != nil {
-				colorlog.ErrorPrint(err2)
-				return Response{
-					-1, "Env prepare error",
-				}
-			}
 			err := server.Start()
 			if err == nil {
 				return Response{
@@ -141,7 +135,9 @@ func handleRequest(request Request) Response {
 			return Response{-1, "Invalid server id."}
 		}
 	case "Stop":
+		colorlog.LogPrint("Stop command sent.")
 		if server, ok := servers[request.OperateID]; ok {
+
 			server.Close()
 		} else {
 			return Response{-1, "Invalid server id"}
@@ -215,6 +211,38 @@ func handleRequest(request Request) Response {
 	case "KeyRegister":
 		auth.KeyRigist(request.Message, request.OperateID)
 		return Response{0, "OK"}
+	case "GetServerDir":
+		if server,ok := serverSaved[request.OperateID]; ok {
+			if validateOperateDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/",request.Message) {
+				infos,err := ioutil.ReadDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
+				if err != nil {
+					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
+					return Response{-1,"Reading Dir :" + err.Error()}
+				}
+				b,_ := json.Marshal(buildServerInfos(infos))
+				return Response{0,string(b)}
+			} else {
+				return Response{-1,"Permission denied."}
+			}
+
+
+		}
+		return Response{-1,"Invalid server id"}
+	case "DeleteServerFile":
+		if server,ok := serverSaved[request.OperateID]; ok {
+			if validateOperateDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/",request.Message) {
+				err := os.RemoveAll("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
+				if err != nil {
+					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
+					return Response{-1,"Reading Dir :" + err.Error()}
+				}
+				return  Response{0,"Deleted dir."}
+			} else {
+				return Response{-1,"Permission denied."}
+			}
+
+
+		}
 	}
 	return Response{
 		-1, "Unexpected err",

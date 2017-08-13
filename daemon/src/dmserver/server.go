@@ -3,7 +3,6 @@ package dmserver
 import (
 	"bufio"
 	"colorlog"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
 	"os"
@@ -11,6 +10,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"fmt"
+	"errors"
+	"time"
+	"syscall"
 )
 
 // 服务器状态码
@@ -22,12 +25,33 @@ const (
 )
 
 func (s *ServerRun) Close() {
-
+	colorlog.LogPrint("Closing server...")
+	var execConf ExecConf
+	if server,ok := serverSaved[s.ID];ok{
+		var err error
+		execConf,err = server.loadExecutableConfig()
+		if err != nil {
+			colorlog.ErrorPrint(err)
+			return
+		}
+	}
+	colorlog.LogPrint("Closing command is" + execConf.StoppedServerCommand)
+	go time.AfterFunc(20 * time.Second,func(){
+		// 杀死进程组.
+		colorlog.PointPrint("Timeout,Kill them.")
+		if serverSaved[s.ID].Status != 0 {
+			if s.Cmd.Process != nil {
+				syscall.Kill(s.Cmd.Process.Pid,syscall.SIGKILL)
+			}
+		}
+	})
+	s.inputLine(execConf.StoppedServerCommand)
 }
 
 func (server *ServerLocal) Start() error {
 
 	server.EnvPrepare()
+	colorlog.LogPrint("Done.")
 	execConf, err0 := server.loadExecutableConfig()
 	if err0 != nil {
 		return err0
@@ -40,8 +64,7 @@ func (server *ServerLocal) Start() error {
 	if execConf.ProcDir {
 		commandArgs = append(commandArgs, "-proc")
 	}
-	cmd := exec.Command("./server")
-
+	cmd := exec.Command("./server",commandArgs...)
 	//#########Testing###########
 	stdoutPipe, err := cmd.StdoutPipe()
 
@@ -74,8 +97,13 @@ func (server *ServerLocal) Start() error {
 		"server"+strconv.Itoa(server.ID),
 		strconv.Itoa(cmd.Process.Pid))
 	cmdCgroup.Env = os.Environ()
-	cmdCgroup.Run()
-	go servers[len(servers)-1].ProcessOutput(start, join, left) // 将三个参数传递
+	output, err4 := cmdCgroup.CombinedOutput()
+	if err4 != nil {
+		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err4.Error()))
+		colorlog.LogPrint("Reaseon:" + string(output))
+		colorlog.PromptPrint("This server's source may not valid")
+	}
+	go servers[server.ID].ProcessOutput(start, join, left) // 将三个参数传递
 	return nil
 }
 
@@ -95,7 +123,7 @@ func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 		if err != nil || io.EOF == err {
 			break
 		}
-		//fmt.Printf("%s",line)
+		fmt.Printf("%s",line)
 		s.BufLog = append(s.BufLog[1:], line)
 		s.processOutputLine(string(line), start, join, left) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
@@ -105,6 +133,7 @@ func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 		}
 	}
 	colorlog.LogPrint("Break for loop,server stopped or EOF. ")
+	//delete(serverSaved,s.ID)
 
 }
 
@@ -134,6 +163,7 @@ func GetServerSaved() map[int]*ServerLocal {
 func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
 	serverSaved[s.ID].Status = 0
+	delete(serverSaved,s.ID)
 	colorlog.PointPrint("Server Stopped")
 }
 
@@ -149,7 +179,7 @@ func (e *ExecConf) getRegexps() (*regexp.Regexp, *regexp.Regexp, *regexp.Regexp)
 		colorlog.ErrorPrint(err2)
 		joinReg = regexp.MustCompile("(\\w+)\\[.+\\] logged in")
 	}
-	exitReg, err3 := regexp.Compile("")
+	exitReg, err3 := regexp.Compile(e.PlayExitRegexp)
 	if err3 != nil {
 		colorlog.ErrorPrint(err3)
 		exitReg = regexp.MustCompile("(\\w+) left the game")
