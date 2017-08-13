@@ -18,5 +18,4 @@ func Start(configure conf.Config) {
 	// 为http加上处理器
 	http.HandleFunc("/download", handleDownload)
 	http.HandleFunc("/upload", handleUpload)
-	// TODO Handler : Delete
 }

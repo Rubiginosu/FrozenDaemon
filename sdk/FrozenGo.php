@@ -129,32 +129,31 @@ class FrozenGo
     }
 
     /**
+     * @param $url
+     * 配置文件url
      * @param $id
-     * 要设置的id
-     * @param $exec
-     * 可执行文件名
+     * 要读取的配置文件id
      * @return mixed|string
-     * 返回同Create.
      */
-    public function setExecutable($id, $exec)
-    {
-        return $this->SockResult("SetExecutable", $id, $exec);
-    }
-
     public function execInstall($url, $id)
     {
         return $this->SockResult("ExecInstall", $id, $url);
 
     }
-    // TODO 尽快修好！
-    // 下面两个正在调试
-    // !!! With Bug...
+
+    /**
+     * 开启一个未运行的服务器
+     * @param $id
+     * 要开启的服务器
+     * @return mixed|string
+     */
     public function startServer($id)
     {
         return $this->SockResult("Start", $id);
     }
 
     /**
+     * 停止一个特定id的服务器。
      * @param $id
      * 停止的服务器id
      * @return mixed|string
@@ -185,7 +184,7 @@ class FrozenGo
      * 一个简易的元素集如下：
      * [
      *      [
-     *          "AttrName" => FrozenGo::SERVER_NAME
+     *          "AttrName" => FrozenGo::SERVER_NAME,
      *          "AttrValue" => "Axoford12"
      *      ]
      * ]
@@ -212,13 +211,14 @@ class FrozenGo
     }
 
     /**
+     * 获取在线的人
      * @param $id
      * 服务器id
      */
     public function getOnlinePlayers($id){
         $result = $this->SockResult("GetServerPlayers",$id);
         $result->Message = json_decode($result->Message);
-        print_r($result);
+        return $result;
     }
 
     /**
@@ -232,6 +232,29 @@ class FrozenGo
      */
     public function keyRegister($key,$id){
         return $this->SockResult("KeyRegister",$id,$key);
+    }
+
+    /**
+     * 本函数用于删除服务器数据目录下的文件，删除 %FGO%/servers/server$id/serverData/$file
+     * @param $id
+     * 要删除的id
+     * @param $file
+     * 文件路径及其名称
+     */
+    public function deleteServerFile($id,$file){
+        return $this->SockResult("DeleteServerFile",$id,$file);
+    }
+
+    /**
+     * 获得 %FGO%/servers/server$id/serverData/$path 目录下的所有文件及其信息
+     * @param $id
+     * @param $path
+     * @return mixed|string
+     */
+    public function getServerFiles($id,$path){
+        $result = $this->SockResult("GetServerDir",$id);
+        $result->Message = json_decode($result->Message);
+        return $result;
     }
 
     private function SockResult($method, $operateId = 0, $message = "")
