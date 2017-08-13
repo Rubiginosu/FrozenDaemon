@@ -3,6 +3,8 @@ package dmserver
 import (
 	"bufio"
 	"colorlog"
+	"errors"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
 	"os"
@@ -10,10 +12,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"fmt"
-	"errors"
-	"time"
 	"syscall"
+	"time"
 )
 
 // 服务器状态码
@@ -27,21 +27,21 @@ const (
 func (s *ServerRun) Close() {
 	colorlog.LogPrint("Closing server...")
 	var execConf ExecConf
-	if server,ok := serverSaved[s.ID];ok{
+	if server, ok := serverSaved[s.ID]; ok {
 		var err error
-		execConf,err = server.loadExecutableConfig()
+		execConf, err = server.loadExecutableConfig()
 		if err != nil {
 			colorlog.ErrorPrint(err)
 			return
 		}
 	}
 	colorlog.LogPrint("Closing command is" + execConf.StoppedServerCommand)
-	go time.AfterFunc(20 * time.Second,func(){
+	go time.AfterFunc(20*time.Second, func() {
 		// 杀死进程组.
 		colorlog.PointPrint("Timeout,Kill them.")
 		if serverSaved[s.ID].Status != 0 {
 			if s.Cmd.Process != nil {
-				syscall.Kill(s.Cmd.Process.Pid,syscall.SIGKILL)
+				syscall.Kill(s.Cmd.Process.Pid, syscall.SIGKILL)
 			}
 		}
 	})
@@ -64,7 +64,7 @@ func (server *ServerLocal) Start() error {
 	if execConf.ProcDir {
 		commandArgs = append(commandArgs, "-proc")
 	}
-	cmd := exec.Command("./server",commandArgs...)
+	cmd := exec.Command("./server", commandArgs...)
 	//#########Testing###########
 	stdoutPipe, err := cmd.StdoutPipe()
 
@@ -123,7 +123,7 @@ func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 		if err != nil || io.EOF == err {
 			break
 		}
-		fmt.Printf("%s",line)
+		fmt.Printf("%s", line)
 		s.BufLog = append(s.BufLog[1:], line)
 		s.processOutputLine(string(line), start, join, left) // string对与正则更加友好吧
 		//s.ToOutput.IsOutput = true
@@ -163,7 +163,7 @@ func GetServerSaved() map[int]*ServerLocal {
 func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
 	serverSaved[s.ID].Status = 0
-	delete(serverSaved,s.ID)
+	delete(serverSaved, s.ID)
 	colorlog.PointPrint("Server Stopped")
 }
 

@@ -1,19 +1,20 @@
 package conf
 
 import (
+	"colorlog"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"time"
-	"fmt"
-	"colorlog"
 	"os/exec"
-	"errors"
 	"regexp"
 	"strings"
+	"time"
 )
-const(
+
+const (
 	/**
 	三种方法分别有各自的长处和缺点
 	下面给出详细解释：
@@ -24,11 +25,12 @@ const(
 	若你还是锑一样的删掉了/bin /lib 等目录，然后跑来挂婊作者，那你还真是个十足的小学生。
 	如果您不是很了解，甚至是Linux小白，请采用2,3方法。
 	2,3方法如果需要限制磁盘要求，请选用Copy,如果不需要，讲求性能，请选用Link。它们都是安全的方法
-	 */
+	*/
 	HDM_MOUNT = "Mount"
-	HDM_COPY = "Copy"
-	HDM_LINK = "Link"
+	HDM_COPY  = "Copy"
+	HDM_LINK  = "Link"
 )
+
 type Config struct {
 	ServerManager       serverManager
 	DaemonServer        DaemonServer
@@ -42,7 +44,7 @@ type DaemonServer struct {
 	ValidationKeyOutDateTimeSeconds float64
 	UserId                          int
 	HardDiskMethod                  string
-	BlockDeviceMajMim	string
+	BlockDeviceMajMim               string
 }
 
 type serverManager struct {
@@ -55,6 +57,7 @@ type serverManager struct {
 type FileTransportServer struct {
 	Port int
 }
+
 func GetConfig(filename string) (Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -78,7 +81,7 @@ func GenerateConfig(filepath string) Config {
 			256,
 			20,
 			100000,
-			HDM_LINK,""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+			HDM_LINK, ""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
 	file, err := os.Create(filepath)
@@ -93,26 +96,26 @@ func GenerateConfig(filepath string) Config {
 	fmt.Println(
 		`
 NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-sda      ` + colorlog.ColorSprint("8:0",colorlog.FR_CYAN) + `    0 931.5G  0 disk
+sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 disk
 ├─sda2   8:2    0 927.1G  0 part /
 ├─sda3   8:3    0   3.9G  0 part [SWAP]
 └─sda1   8:1    0   512M  0 part /boot/efi
 		`)
-	colorlog.PromptPrint("And you should choose " + colorlog.ColorSprint("8:0",colorlog.FR_CYAN))
+	colorlog.PromptPrint("And you should choose " + colorlog.ColorSprint("8:0", colorlog.FR_CYAN))
 	for {
 		majMin := ""
 
 		cmd := exec.Command("/bin/lsblk")
-		output,err2 := cmd.Output()
+		output, err2 := cmd.Output()
 		if err2 != nil {
 			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err2.Error()))
 			os.Exit(-2) // 退出程序
 		}
-		colorlog.PromptPrint("Please choose: Your main hard disk Maj:Min\n" )
+		colorlog.PromptPrint("Please choose: Your main hard disk Maj:Min\n")
 		fmt.Println(string(output))
 		colorlog.PromptPrint("Please input your hardDisk Maj:Min number.")
-		fmt.Scanf("%s",&majMin)
-		if err := validateMajMin(majMin,output);err == nil{
+		fmt.Scanf("%s", &majMin)
+		if err := validateMajMin(majMin, output); err == nil {
 			v.DaemonServer.BlockDeviceMajMim = majMin
 			break
 		} else {
@@ -122,7 +125,6 @@ sda      ` + colorlog.ColorSprint("8:0",colorlog.FR_CYAN) + `    0 931.5G  0 dis
 			colorlog.PromptPrint("8:0")
 		}
 	}
-
 
 	s, _ := json.MarshalIndent(v, "", "\t")
 	file.Write(s)
@@ -142,11 +144,11 @@ func RandString(length int) string {
 	return string(result)
 }
 
-func validateMajMin(majMin string,output []byte) error{
+func validateMajMin(majMin string, output []byte) error {
 	if !regexp.MustCompile("\\w+:\\w+").Match([]byte(majMin)) {
 		return errors.New("A correct Maj:Min must like Numbers:Numbers")
 	}
-	if strings.Index(string(output),majMin) >= 0 {
+	if strings.Index(string(output), majMin) >= 0 {
 		return nil
 	} else {
 		return errors.New("Maj:Min must contain in output.")

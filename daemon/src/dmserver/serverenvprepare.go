@@ -1,17 +1,17 @@
 package dmserver
 
 import (
+	"colorlog"
+	"conf"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
-	"errors"
-	"colorlog"
-	"conf"
 )
 
 // 准备环境
@@ -39,8 +39,8 @@ func (server *ServerLocal) EnvPrepare() error {
 	colorlog.PointPrint("Preparing server runtime for ServerID:" + strconv.Itoa(server.ID))
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
 	// 文件夹不存在则创建文件夹,并且将所有者设置为用户
-	os.MkdirAll(serverDataDir + "/serverData",0750)
-	os.Chown(serverDataDir + "/serverData",config.DaemonServer.UserId,0)
+	os.MkdirAll(serverDataDir+"/serverData", 0750)
+	os.Chown(serverDataDir+"/serverData", config.DaemonServer.UserId, 0)
 	if _, err0 := os.Stat(serverDataDir + ".loop"); err0 != nil && config.DaemonServer.HardDiskMethod != conf.HDM_LINK { //检查loop回环文件是否存在，如果不存在则创建
 		colorlog.PointPrint("No loop file...")
 		colorlog.LogPrint("Frozen Go Daemon will just make a new loop file")

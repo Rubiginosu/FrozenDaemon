@@ -88,5 +88,5 @@ type ServerAttrElement struct {
 type ServerPathFileInfo struct {
 	Name    string // 文件名
 	Mode    string // 文件Unix模式位
-	ModTime int64 // 文件修改时间
+	ModTime int64  // 文件修改时间
 }

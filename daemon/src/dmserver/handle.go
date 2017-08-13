@@ -10,9 +10,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
-	"os"
 )
 
 var config conf.Config
@@ -212,35 +212,33 @@ func handleRequest(request Request) Response {
 		auth.KeyRigist(request.Message, request.OperateID)
 		return Response{0, "OK"}
 	case "GetServerDir":
-		if server,ok := serverSaved[request.OperateID]; ok {
-			if validateOperateDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/",request.Message) {
-				infos,err := ioutil.ReadDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
+		if server, ok := serverSaved[request.OperateID]; ok {
+			if validateOperateDir("../servers/server"+strconv.Itoa(server.ID)+"/serverData/", request.Message) {
+				infos, err := ioutil.ReadDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
 				if err != nil {
 					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
-					return Response{-1,"Reading Dir :" + err.Error()}
+					return Response{-1, "Reading Dir :" + err.Error()}
 				}
-				b,_ := json.Marshal(buildServerInfos(infos))
-				return Response{0,string(b)}
+				b, _ := json.Marshal(buildServerInfos(infos))
+				return Response{0, string(b)}
 			} else {
-				return Response{-1,"Permission denied."}
+				return Response{-1, "Permission denied."}
 			}
 
-
 		}
-		return Response{-1,"Invalid server id"}
+		return Response{-1, "Invalid server id"}
 	case "DeleteServerFile":
-		if server,ok := serverSaved[request.OperateID]; ok {
-			if validateOperateDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/",request.Message) {
+		if server, ok := serverSaved[request.OperateID]; ok {
+			if validateOperateDir("../servers/server"+strconv.Itoa(server.ID)+"/serverData/", request.Message) {
 				err := os.RemoveAll("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
 				if err != nil {
 					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
-					return Response{-1,"Reading Dir :" + err.Error()}
+					return Response{-1, "Reading Dir :" + err.Error()}
 				}
-				return  Response{0,"Deleted dir."}
+				return Response{0, "Deleted dir."}
 			} else {
-				return Response{-1,"Permission denied."}
+				return Response{-1, "Permission denied."}
 			}
-
 
 		}
 	}
@@ -256,7 +254,7 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 		for i := 0; i < len(attrs); i++ {
 			switch attrs[i].AttrName {
 			case "MaxCpuRate":
-				rate,err := strconv.Atoi(attrs[i].AttrValue)
+				rate, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}
@@ -284,25 +282,25 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 				}
 				server.Expire = server.Expire + int64(expire) - 3600
 			case "MaxHardDiskWriteSpeed":
-				speed,err := strconv.Atoi(attrs[i].AttrValue)
+				speed, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}
 				server.MaxHardDiskWriteSpeed = speed
 			case "MaxHardDiskReadSpeed":
-				speed,err := strconv.Atoi(attrs[i].AttrValue)
+				speed, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}
 				server.MaxHardDiskReadSpeed = speed
 			case "MaxDlBandwidth":
-				width,err := strconv.Atoi(attrs[i].AttrValue)
+				width, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}
 				server.MaxDlBandwidth = width
 			case "MaxUpBandwidth":
-				width,err := strconv.Atoi(attrs[i].AttrValue)
+				width, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
 					return err
 				}

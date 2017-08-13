@@ -38,13 +38,13 @@ func LogPrint(message string) {
 }
 
 func WarningPrint(message string) {
-	fmt.Println(ColorSprint("[Warning]", FR_YELLO),message)
+	fmt.Println(ColorSprint("[Warning]", FR_YELLO), message)
 }
 func PointPrint(message string) {
 	fmt.Print(ColorSprint("[Point]", FR_PURPLE))
 	fmt.Println(message)
 }
-func PromptPrint(message string){
-	fmt.Print(ColorSprint("[Prompt]",FR_GREEN))
+func PromptPrint(message string) {
+	fmt.Print(ColorSprint("[Prompt]", FR_GREEN))
 	fmt.Println(message)
 }
