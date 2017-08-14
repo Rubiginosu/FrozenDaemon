@@ -16,25 +16,12 @@ import (
 
 // 准备环境
 func (server *ServerLocal) EnvPrepare() error {
-	colorlog.PointPrint("You are running in " + config.DaemonServer.HardDiskMethod + " HardDisk method.")
-	cmd := exec.Command("/bin/bash",
-		"../cgroup/cg.sh",
-		"cg",
-		"init",
-		"server"+strconv.Itoa(server.ID),
-		strconv.Itoa(server.MaxCpuUtilizatioRate),
-		strconv.Itoa(server.MaxMem),
-		strconv.Itoa(server.MaxHardDiskReadSpeed),
-		strconv.Itoa(server.MaxHardDiskWriteSpeed),
-		config.DaemonServer.BlockDeviceMajMim,
-		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
-	cmd.Env = os.Environ()
+	defer os.Chown("../servers/server" + strconv.Itoa(server.ID),config.DaemonServer.UserId,0) // 让他有权限访问.
+	networkID := strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1)
 	//  上面的替换是让服务器的id替换为四位十六进制id
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
-		colorlog.PromptPrint("This server's source may not valid")
+	colorlog.PointPrint("You are running in " + config.DaemonServer.HardDiskMethod + " HardDisk method.")
+	if _,err := os.Stat("/sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID));err != nil{
+		server.initCgroup()
 	}
 	colorlog.PointPrint("Preparing server runtime for ServerID:" + strconv.Itoa(server.ID))
 	serverDataDir := "../servers/server" + strconv.Itoa(server.ID) // 在一开头就把serverDir算好，增加代码重用
@@ -83,13 +70,31 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.LogPrint("Mounting loop file")
 		cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+".loop", serverDataDir)
 		output3, err3 := cmd3.CombinedOutput()
-		if err3 != nil && strings.Index(string(output), "is already mounted") <= 0 {
+		if err3 != nil && strings.Index(string(output3), "is already mounted") <= 0 {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
 			colorlog.LogPrint("Reaseon:" + string(output3))
 			//return errors.New("Error with mounting loop file:"+err.Error())
 		}
 	}
+	networkArgs := []string{
+		"../cgroup/cg.sh",
+		"net",
+		"add",
+		networkID,
+		strconv.Itoa(server.MaxUsingUpBandwidth),
+		strconv.Itoa(server.MaxUnusedUpBandwidth),
+		config.DaemonServer.NetworkCardName,
 
+	}
+	cmdNetwork := exec.Command("/bin/bash",networkArgs...)
+	cmdNetwork.Env = os.Environ()
+
+	output, err := cmdNetwork.CombinedOutput()
+	if err != nil {
+		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
+		colorlog.LogPrint("Reaseon:" + string(output))
+		colorlog.PromptPrint("This server's source may not valid")
+	}
 	execConfig, err3 := server.loadExecutableConfig()
 	if err3 != nil {
 		return err3
@@ -117,6 +122,7 @@ func (server *ServerLocal) EnvPrepare() error {
 	}
 	return errors.New("Unexpected error")
 
+
 }
 
 func (server *ServerLocal) loadExecutableConfig() (ExecConf, error) {
@@ -140,7 +146,6 @@ func (server *ServerLocal) makeDirInServerPath(path string, mode os.FileMode) er
 		re, _ := filepath.Abs("../")
 		current, _ := filepath.Abs(path)
 		relPath, _ := filepath.Rel(re, current)
-		//colorlog.LogPrint(server.getLinkDir() + "/" + relPath)
 		return os.MkdirAll(server.getLinkDir()+"/"+relPath, mode)
 	}
 }
@@ -151,7 +156,6 @@ func (server *ServerLocal) getLinkDir() string {
 
 func (server *ServerLocal) linkDirFile(oldName string) error {
 	if filepath.IsAbs(oldName) {
-		colorlog.LogPrint("../servers/server" + strconv.Itoa(server.ID) + "/" + oldName)
 		return os.Link(oldName, "../servers/server"+strconv.Itoa(server.ID)+"/"+oldName)
 	} else {
 		re, _ := filepath.Abs("../")

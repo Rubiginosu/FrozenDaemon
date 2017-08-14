@@ -65,22 +65,22 @@ func handleRequest(request Request) Response {
 	case "Create":
 
 		if _, ok := serverSaved[request.OperateID]; ok {
-			return Response{-1, "Server id:" + strconv.Itoa(request.OperateID) + "has been token"}
+			return Response{-1, "Server id: " + strconv.Itoa(request.OperateID) + "has been token"}
 		}
 
 		serverSaved[request.OperateID] = &ServerLocal{
-			request.OperateID,
-			"test",
-			"",
-			0,
-			1,
-			1024,
-			0,
-			50,
-			50,
-			100,
-			100,
-			time.Now().Unix() + 3600,
+			ID:request.OperateID,
+			Name:request.Message,
+			Executable:"",
+			Status:0,
+			MaxCpuUtilizatioRate:1,
+			MaxMem:1024,
+			MaxHardDiskCapacity:0,
+			MaxHardDiskReadSpeed:50,
+			MaxHardDiskWriteSpeed:50,
+			MaxUnusedUpBandwidth:100,
+			MaxUsingUpBandwidth:100,
+			Expire:time.Now().Unix() + 3600,
 		}
 		// 序列化b来储存。
 		b, err := json.MarshalIndent(serverSaved, "", "\t")
@@ -177,11 +177,11 @@ func handleRequest(request Request) Response {
 		if err != nil {
 			return Response{-1, "Json decoding error:" + err.Error()}
 		}
-		err2 := setServerConfigAll(elements, request.OperateID)
+		nums,err2 := setServerConfigAll(elements, request.OperateID)
 		if err2 != nil {
 			return Response{-1, err2.Error()}
 		}
-		return Response{0, fmt.Sprintf("OK,Setted %d element(s)", len(elements))}
+		return Response{0, fmt.Sprintf("OK,Setted %d element(s)",nums)}
 	case "GetServerConfig":
 		// 获取服务器信息（已保存信息）
 		if server, ok := serverSaved[request.OperateID]; ok {
@@ -247,22 +247,24 @@ func handleRequest(request Request) Response {
 	}
 }
 
-func setServerConfigAll(attrs []ServerAttrElement, index int) error {
+func setServerConfigAll(attrs []ServerAttrElement, index int) (int,error) {
+	res := len(serverSaved)
 	// 设置该设置的Attrs
 	if server, ok := serverSaved[index]; ok {
 		// 判断被设置那个服务器是否存在于映射
 		for i := 0; i < len(attrs); i++ {
+			colorlog.LogPrint("Attempt to set " + colorlog.ColorSprint(attrs[i].AttrName,colorlog.FR_CYAN) + "="+colorlog.ColorSprint(attrs[i].AttrValue,colorlog.FR_GREEN) + " to server" + strconv.Itoa(index))
 			switch attrs[i].AttrName {
 			case "MaxCpuRate":
 				rate, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.MaxCpuUtilizatioRate = rate
-			case "MaxMemory":
+			case "MaxMem":
 				mem, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.MaxMem = mem
 			case "Executable":
@@ -270,7 +272,7 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 			case "MaxHardDiskCapacity":
 				disk, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.MaxHardDiskCapacity = disk
 			case "Name":
@@ -278,38 +280,45 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) error {
 			case "Expire":
 				expire, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.Expire = server.Expire + int64(expire) - 3600
 			case "MaxHardDiskWriteSpeed":
 				speed, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.MaxHardDiskWriteSpeed = speed
 			case "MaxHardDiskReadSpeed":
 				speed, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
 				server.MaxHardDiskReadSpeed = speed
-			case "MaxDlBandwidth":
+			case "MaxUnusedUpBandwidth":
 				width, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
-				server.MaxDlBandwidth = width
-			case "MaxUpBandwidth":
+				server.MaxUnusedUpBandwidth = width
+			case "MaxUsingUpBandwidth":
 				width, err := strconv.Atoi(attrs[i].AttrValue)
 				if err != nil {
-					return err
+					return -1,err
 				}
-				server.MaxUpBandwidth = width
+				server.MaxUsingUpBandwidth = width
+			default:
+				colorlog.WarningPrint("Attr " + colorlog.ColorSprint(attrs[i].AttrName,colorlog.FR_RED) + " not found or cannot be set.")
+				res--
 			}
 		}
+
+		server.networkFlush()
+		server.performanceFlush()
+		return res,nil
 	}
 
-	return errors.New("Err with invalid server id.")
+	return -1,errors.New("Err with invalid server id.")
 }
 func outputListOfServers() Response {
 	b, _ := json.Marshal(serverSaved)

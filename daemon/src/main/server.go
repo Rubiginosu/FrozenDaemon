@@ -35,7 +35,7 @@ func main() {
 	syscall.Chroot(root)
 
 	if proc {
-		//os.Mkdir("/proc",555)
+		os.Mkdir("/proc",555)
 		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")
 		cmd.Run() // 挂载proc
 	}

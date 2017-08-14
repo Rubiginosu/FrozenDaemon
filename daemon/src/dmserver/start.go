@@ -38,11 +38,15 @@ func StartDaemonServer(conf conf.Config) {
 
 }
 func StopDaemonServer() error {
-	//for i := 0; i < len(servers); i++ {
-	//
-	//}
-	//for i := 0; i < len(serverSaved); i++ {
-	//	serverSaved[i].Status = 0
-	//}
+	for _,v := range serverSaved {
+		if v.Status != 0 {
+			if server,ok := servers[v.ID];ok {
+				if server.Cmd != nil && server.Cmd.Process != nil {
+					server.Cmd.Process.Kill()
+				}
+			}
+			v.Status = 0
+		}
+	}
 	return saveServerInfo()
 }

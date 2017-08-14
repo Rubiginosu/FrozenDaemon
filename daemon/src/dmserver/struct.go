@@ -51,9 +51,9 @@ type Module struct {
 
 type ServerLocal struct {
 	//  --- 表示该属性与的AttrName与原属性的名称相同
-	ID         int            // 不可设置，创建时指定
-	Name       string        // 可设置 ----
-	Executable string        // 可设置 ----
+	ID         int    // 不可设置，创建时指定
+	Name       string // 可设置 ----
+	Executable string // 可设置 ----
 	Status     int
 	/*
 		Status  enum 应该只有
@@ -67,8 +67,10 @@ type ServerLocal struct {
 	MaxHardDiskReadSpeed  int // 磁盘最大读速率                              可设置      ------
 	MaxHardDiskWriteSpeed int // 磁盘最大写速率                               可设置     ------
 	// 读写速率单位均为 M/s
-	MaxUpBandwidth int   // 最大上行带宽 单位 Mb/s // b ： bit.               可设置     ------
-	Expire         int64 // 过期时间，Unix时间戳                              可设置    ------
+	MaxUnusedUpBandwidth int
+	MaxUsingUpBandwidth  int
+	// 最大上行带宽 单位 Mb/s // b ： bit.               可设置     ------
+	Expire int64 // 过期时间，Unix时间戳                              可设置    ------
 	// ########### 设置 expire ，服务端会将其加入到开服时间，单位秒，
 	//             Example 设置 3600 服务端将在服务器被创建一小时后直接删除...该删除没有提示
 	//             Daemon 每隔五秒进行一次过期检测，清理所有过期服务器并给出Log信息

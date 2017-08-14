@@ -45,6 +45,7 @@ type DaemonServer struct {
 	UserId                          int
 	HardDiskMethod                  string
 	BlockDeviceMajMim               string
+	NetworkCardName                 string
 }
 
 type serverManager struct {
@@ -81,7 +82,7 @@ func GenerateConfig(filepath string) Config {
 			256,
 			20,
 			100000,
-			HDM_LINK, ""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+			HDM_LINK, "",""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
 	file, err := os.Create(filepath)
@@ -106,16 +107,17 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 		majMin := ""
 
 		cmd := exec.Command("/bin/lsblk")
-		output, err2 := cmd.Output()
-		if err2 != nil {
-			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err2.Error()))
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
+			colorlog.LogPrint("Reason:" + string(output))
 			os.Exit(-2) // 退出程序
 		}
 		colorlog.PromptPrint("Please choose: Your main hard disk Maj:Min\n")
 		fmt.Println(string(output))
 		colorlog.PromptPrint("Please input your hardDisk Maj:Min number.")
 		fmt.Scanf("%s", &majMin)
-		if err := validateMajMin(majMin, output); err == nil {
+		if err := validate(majMin, output,regexp.MustCompile("\\d+:\\d+")); err == nil {
 			v.DaemonServer.BlockDeviceMajMim = majMin
 			break
 		} else {
@@ -125,7 +127,32 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 			colorlog.PromptPrint("8:0")
 		}
 	}
+	colorlog.PointPrint("Maj:Min checked ok.")
+	colorlog.PromptPrint("Please set network card name")
+	for {
+		name := ""
 
+		cmd := exec.Command("/bin/ip","a")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
+			colorlog.LogPrint("Reason:" + string(output))
+			os.Exit(-2) // 退出程序
+		}
+		colorlog.PromptPrint("Please choose: Your main networkCard mame\n")
+		fmt.Println(string(output))
+		colorlog.PromptPrint("Please input:")
+		fmt.Scanf("%s", &name)
+		if err := validate(name, output,regexp.MustCompile(".+")); err == nil {
+			v.DaemonServer.NetworkCardName = name
+			break
+		} else {
+			colorlog.PromptPrint("Your networkCard name may not valid.")
+			colorlog.PromptPrint("Reason" + err.Error())
+			colorlog.PromptPrint("the correct networkCard name likes this : ")
+			colorlog.PromptPrint("eth0")
+		}
+	}
 	s, _ := json.MarshalIndent(v, "", "\t")
 	file.Write(s)
 
@@ -144,13 +171,13 @@ func RandString(length int) string {
 	return string(result)
 }
 
-func validateMajMin(majMin string, output []byte) error {
-	if !regexp.MustCompile("\\w+:\\w+").Match([]byte(majMin)) {
-		return errors.New("A correct Maj:Min must like Numbers:Numbers")
+func validate(input string, output []byte,reg *regexp.Regexp) error {
+	if !reg.Match([]byte(input)) {
+		return errors.New("Not a correct format.")
 	}
-	if strings.Index(string(output), majMin) >= 0 {
+	if strings.Index(string(output), input) >= 0 {
 		return nil
 	} else {
-		return errors.New("Maj:Min must contain in output.")
+		return errors.New("Must contain in output.")
 	}
 }

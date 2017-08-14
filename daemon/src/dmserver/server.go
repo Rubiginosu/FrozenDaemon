@@ -108,12 +108,16 @@ func (server *ServerLocal) Start() error {
 }
 
 func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
-	fmt.Println(s.Cmd.Process.Pid)
+	if s.Cmd == nil || s.Cmd.Process == nil {
+		return
+	}
+	colorlog.LogPrint(fmt.Sprintf("PID: %d",s.Cmd.Process.Pid))
 	buf := bufio.NewReader(*s.StdoutPipe)
 	if _, ok := serverSaved[s.ID]; !ok {
 		delete(servers, s.ID)
 		return
 	}
+	defer colorlog.LogPrint("Break for loop,server stopped or EOF. ")
 	go s.getServerStopped()
 	for {
 		if serverSaved[s.ID].Status == 0 {
@@ -132,7 +136,7 @@ func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 			to.WriteMessage(websocket.TextMessage, line)
 		}
 	}
-	colorlog.LogPrint("Break for loop,server stopped or EOF. ")
+
 	//delete(serverSaved,s.ID)
 
 }
@@ -143,6 +147,8 @@ func (server *ServerLocal) Delete() {
 	if server.Status == SERVER_STATUS_RUNNING {
 		servers[server.ID].Close()
 	}
+	server.cgroupDel()
+	server.networkDel()
 	// 如果服务器仍然开启则先关闭服务器。
 	// 成功关闭后，请Golang拆迁队清理违章建筑
 	nowPath, _ := filepath.Abs(".")
@@ -150,7 +156,6 @@ func (server *ServerLocal) Delete() {
 	os.RemoveAll(serverRunPath)
 	// 清理服务器所占的储存空间
 	// 违章搭建搞定以后，把这个记账本的东东也删掉
-	// go这个切片是[,)左闭右开的区间，应该这么写吧~
 	delete(serverSaved, server.ID)
 	// 保存服务器信息。
 	saveServerInfo()
