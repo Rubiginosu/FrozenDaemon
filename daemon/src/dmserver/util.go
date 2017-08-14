@@ -1,14 +1,14 @@
 package dmserver
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"os/exec"
-	"strconv"
 	"colorlog"
 	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 /**
@@ -38,7 +38,7 @@ func validateOperateDir(upload string, path string) bool {
 	return strings.Index(filepath.Clean(upload+path), upload) >= 0
 }
 
-func (server *ServerLocal) initCgroup(){
+func (server *ServerLocal) initCgroup() {
 	// 当检测到cg目录不存在时，启动cg.init
 	cmd := exec.Command("/bin/bash",
 		"../cgroup/cg.sh",
@@ -61,7 +61,7 @@ func (server *ServerLocal) initCgroup(){
 	}
 }
 
-func (server *ServerLocal) networkDel(){
+func (server *ServerLocal) networkDel() {
 	cmd := exec.Command("/bin/bash",
 		"../cgroup/cg.sh",
 		"net",
@@ -79,7 +79,7 @@ func (server *ServerLocal) networkDel(){
 	}
 }
 
-func (server *ServerLocal) networkFlush(){
+func (server *ServerLocal) networkFlush() {
 	cmd := exec.Command("/bin/bash",
 		"../cgroup/cg.sh",
 		"net",
@@ -96,16 +96,16 @@ func (server *ServerLocal) networkFlush(){
 		colorlog.LogPrint("Reaseon:" + string(output))
 	}
 }
-func (server *ServerLocal) performanceFlush(){
+func (server *ServerLocal) performanceFlush() {
 	server.cgroupDel()
 	server.initCgroup()
 }
-func (server *ServerLocal) cgroupDel(){
+func (server *ServerLocal) cgroupDel() {
 	cmd := exec.Command("/bin/bash",
 		"../cgroup/cg.sh",
 		"cg",
 		"del",
-		"server" + strconv.Itoa(server.ID))
+		"server"+strconv.Itoa(server.ID))
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()

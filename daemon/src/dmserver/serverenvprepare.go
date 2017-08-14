@@ -16,11 +16,11 @@ import (
 
 // 准备环境
 func (server *ServerLocal) EnvPrepare() error {
-	defer os.Chown("../servers/server" + strconv.Itoa(server.ID),config.DaemonServer.UserId,0) // 让他有权限访问.
+	defer os.Chown("../servers/server"+strconv.Itoa(server.ID), config.DaemonServer.UserId, 0) // 让他有权限访问.
 	networkID := strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1)
 	//  上面的替换是让服务器的id替换为四位十六进制id
 	colorlog.PointPrint("You are running in " + config.DaemonServer.HardDiskMethod + " HardDisk method.")
-	if _,err := os.Stat("/sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID));err != nil{
+	if _, err := os.Stat("/sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID)); err != nil {
 		server.initCgroup()
 	}
 	colorlog.PointPrint("Preparing server runtime for ServerID:" + strconv.Itoa(server.ID))
@@ -84,9 +84,8 @@ func (server *ServerLocal) EnvPrepare() error {
 		strconv.Itoa(server.MaxUsingUpBandwidth),
 		strconv.Itoa(server.MaxUnusedUpBandwidth),
 		config.DaemonServer.NetworkCardName,
-
 	}
-	cmdNetwork := exec.Command("/bin/bash",networkArgs...)
+	cmdNetwork := exec.Command("/bin/bash", networkArgs...)
 	cmdNetwork.Env = os.Environ()
 
 	output, err := cmdNetwork.CombinedOutput()
@@ -121,7 +120,6 @@ func (server *ServerLocal) EnvPrepare() error {
 		return nil
 	}
 	return errors.New("Unexpected error")
-
 
 }
 

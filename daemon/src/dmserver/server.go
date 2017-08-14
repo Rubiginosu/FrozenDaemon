@@ -111,7 +111,7 @@ func (s *ServerRun) ProcessOutput(start, join, left *regexp.Regexp) {
 	if s.Cmd == nil || s.Cmd.Process == nil {
 		return
 	}
-	colorlog.LogPrint(fmt.Sprintf("PID: %d",s.Cmd.Process.Pid))
+	colorlog.LogPrint(fmt.Sprintf("PID: %d", s.Cmd.Process.Pid))
 	buf := bufio.NewReader(*s.StdoutPipe)
 	if _, ok := serverSaved[s.ID]; !ok {
 		delete(servers, s.ID)

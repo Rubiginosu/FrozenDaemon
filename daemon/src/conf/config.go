@@ -82,7 +82,7 @@ func GenerateConfig(filepath string) Config {
 			256,
 			20,
 			100000,
-			HDM_LINK, "",""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+			HDM_LINK, "", ""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
 	file, err := os.Create(filepath)
@@ -117,7 +117,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 		fmt.Println(string(output))
 		colorlog.PromptPrint("Please input your hardDisk Maj:Min number.")
 		fmt.Scanf("%s", &majMin)
-		if err := validate(majMin, output,regexp.MustCompile("\\d+:\\d+")); err == nil {
+		if err := validate(majMin, output, regexp.MustCompile("\\d+:\\d+")); err == nil {
 			v.DaemonServer.BlockDeviceMajMim = majMin
 			break
 		} else {
@@ -132,7 +132,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 	for {
 		name := ""
 
-		cmd := exec.Command("/bin/ip","a")
+		cmd := exec.Command("/bin/ip", "a")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
@@ -143,7 +143,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 		fmt.Println(string(output))
 		colorlog.PromptPrint("Please input:")
 		fmt.Scanf("%s", &name)
-		if err := validate(name, output,regexp.MustCompile(".+")); err == nil {
+		if err := validate(name, output, regexp.MustCompile(".+")); err == nil {
 			v.DaemonServer.NetworkCardName = name
 			break
 		} else {
@@ -171,7 +171,7 @@ func RandString(length int) string {
 	return string(result)
 }
 
-func validate(input string, output []byte,reg *regexp.Regexp) error {
+func validate(input string, output []byte, reg *regexp.Regexp) error {
 	if !reg.Match([]byte(input)) {
 		return errors.New("Not a correct format.")
 	}

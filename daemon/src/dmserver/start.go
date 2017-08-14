@@ -38,9 +38,9 @@ func StartDaemonServer(conf conf.Config) {
 
 }
 func StopDaemonServer() error {
-	for _,v := range serverSaved {
+	for _, v := range serverSaved {
 		if v.Status != 0 {
-			if server,ok := servers[v.ID];ok {
+			if server, ok := servers[v.ID]; ok {
 				if server.Cmd != nil && server.Cmd.Process != nil {
 					server.Cmd.Process.Kill()
 				}
