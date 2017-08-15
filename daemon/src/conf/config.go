@@ -106,7 +106,8 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 	for {
 		majMin := ""
 
-		cmd := exec.Command("/bin/lsblk")
+		cmd := exec.Command("lsblk")
+		cmd.Env = os.Environ()
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
@@ -132,7 +133,8 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 	for {
 		name := ""
 
-		cmd := exec.Command("/bin/ip", "a")
+		cmd := exec.Command("ip", "a")
+		cmd.Env = os.Environ()
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
