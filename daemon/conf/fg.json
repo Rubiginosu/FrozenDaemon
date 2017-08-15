@@ -8,7 +8,7 @@
 	"DaemonServer": {
 		"Port": 52023,
 		"VerifyCode": "Ihm7W7oH46rYmtCH4aTAJYS2XYCYY8VCxt6QHPKEVV9mAaCC5UhDKSNkVuwBGIsr",
-		"DefaultBufLength": 256,
+		"DefaultBufLength": 1024,
 		"ValidationKeyOutDateTimeSeconds": 20,
 		"UserId": 100000,
 		"HardDiskMethod": "Link",

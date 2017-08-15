@@ -1,7 +1,14 @@
+/*
+本包提供了一些关于用户的ValidationKey的一些函数
+用户在直连daemon时，使用这个key进行鉴权
+鉴权Key由Panel进行指定和分发
+ */
 package auth
 
 import "time"
 
+// 全局Map
+// 该Map指定了某key -> Key对
 var keys = make(map[string]*KeyPair, 0)
 
 const (
@@ -27,7 +34,7 @@ func VerifyKey(key string) int {
 	return KEY_VERIFY_FAILED
 }
 
-func KeyRigist(key string, id int) {
+func KeyRegister(key string, id int) {
 	keys[key] = &KeyPair{
 		ID:   id,
 		Time: time.Now().Unix() + 600,

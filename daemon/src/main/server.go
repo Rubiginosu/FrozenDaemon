@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"syscall"
+	"colorlog"
+	"dmserver"
 )
 
 //#include<unistd.h>
@@ -35,9 +37,15 @@ func main() {
 	syscall.Chroot(root)
 
 	if proc {
+
 		os.Mkdir("/proc", 555)
 		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")
-		cmd.Run() // 挂载proc
+		out,err := cmd.CombinedOutput()
+		if err != nil {
+			colorlog.ErrorPrint(err)
+			dmserver.OutputErrReason(out)
+			return
+		}
 	}
 
 	os.Chdir("serverData") // 都已经Chroot了，思想要开放....

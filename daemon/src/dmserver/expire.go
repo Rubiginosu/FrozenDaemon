@@ -12,7 +12,6 @@ func serverOutDateClearer() {
 			if v.Expire <= time.Now().Unix() {
 				colorlog.LogPrint("Server" + strconv.Itoa(k) + " was out of date.Delete it now.")
 				v.Delete()
-				delete(serverSaved, k)
 			}
 		}
 

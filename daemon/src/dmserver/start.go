@@ -1,3 +1,6 @@
+/**
+本包提供了对于Daemon服务器的通信协议并且对于请求=进行处理.
+ */
 package dmserver
 
 import (
@@ -11,6 +14,7 @@ import (
 	"os"
 	"strconv"
 )
+
 
 func StartDaemonServer(conf conf.Config) {
 	config = conf

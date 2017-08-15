@@ -1,3 +1,8 @@
+/*
+Powered by Axoford12
+Rubiginosu | Freeze Team
+本报提供了一些对于配置文件的生成和读取函数
+ */
 package conf
 
 import (
@@ -73,7 +78,9 @@ func GetConfig(filename string) (Config, error) {
 	json.Unmarshal(b, &v)
 	return v, nil
 }
-
+/**
+生成一个配置文件，并提示用户输入磁盘信息及网卡信息
+ */
 func GenerateConfig(filepath string) Config {
 	var v Config = Config{
 		serverManager{"../data/servers.json", "../data/modules.json", 52024, "8:0"},

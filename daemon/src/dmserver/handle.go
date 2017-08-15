@@ -209,7 +209,7 @@ func handleRequest(request Request) Response {
 			return Response{-1, "Invalid server id"}
 		}
 	case "KeyRegister":
-		auth.KeyRigist(request.Message, request.OperateID)
+		auth.KeyRegister(request.Message, request.OperateID)
 		return Response{0, "OK"}
 	case "GetServerDir":
 		if server, ok := serverSaved[request.OperateID]; ok {
@@ -248,7 +248,7 @@ func handleRequest(request Request) Response {
 }
 
 func setServerConfigAll(attrs []ServerAttrElement, index int) (int, error) {
-	res := len(serverSaved)
+	res := 0
 	// 设置该设置的Attrs
 	if server, ok := serverSaved[index]; ok {
 		// 判断被设置那个服务器是否存在于映射
@@ -309,8 +309,8 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) (int, error) {
 				server.MaxUsingUpBandwidth = width
 			default:
 				colorlog.WarningPrint("Attr " + colorlog.ColorSprint(attrs[i].AttrName, colorlog.FR_RED) + " not found or cannot be set.")
-				res--
 			}
+			res++
 		}
 
 		server.networkFlush()

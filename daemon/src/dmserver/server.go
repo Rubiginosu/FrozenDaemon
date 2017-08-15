@@ -168,7 +168,7 @@ func GetServerSaved() map[int]*ServerLocal {
 func (s *ServerRun) getServerStopped() {
 	s.Cmd.Wait()
 	serverSaved[s.ID].Status = 0
-	delete(serverSaved, s.ID)
+	delete(servers, s.ID)
 	colorlog.PointPrint("Server Stopped")
 }
 

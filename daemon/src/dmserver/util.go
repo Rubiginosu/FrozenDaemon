@@ -39,9 +39,7 @@ func validateOperateDir(upload string, path string) bool {
 }
 
 func (server *ServerLocal) initCgroup() {
-	// 当检测到cg目录不存在时，启动cg.init
-	cmd := exec.Command("/bin/bash",
-		"../cgroup/cg.sh",
+	args := []string{"../cgroup/cg.sh",
 		"cg",
 		"init",
 		"server"+strconv.Itoa(server.ID),
@@ -50,50 +48,58 @@ func (server *ServerLocal) initCgroup() {
 		strconv.Itoa(server.MaxHardDiskReadSpeed),
 		strconv.Itoa(server.MaxHardDiskWriteSpeed),
 		config.DaemonServer.BlockDeviceMajMim,
-		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1))
+		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1)}
+	// 当检测到cg目录不存在时，启动cg.init
+	cmd := exec.Command("/bin/bash",args...)
+	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
+		OutputErrReason(output)
 		colorlog.PromptPrint("This server's source may not valid")
 	}
+	colorlog.LogPrint("Init cgroup done.")
 }
 
 func (server *ServerLocal) networkDel() {
-	cmd := exec.Command("/bin/bash",
-		"../cgroup/cg.sh",
+
+	args := []string{"../cgroup/cg.sh",
 		"net",
 		"del",
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1),
 		"1",
 		"1",
-		config.DaemonServer.NetworkCardName)
+		config.DaemonServer.NetworkCardName}
+	cmd := exec.Command("/bin/bash",args...)
+	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with del network:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
+		OutputErrReason(output)
 	}
 }
 
 func (server *ServerLocal) networkFlush() {
-	cmd := exec.Command("/bin/bash",
+	args := []string{
 		"../cgroup/cg.sh",
 		"net",
 		"change",
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1),
 		strconv.Itoa(server.MaxUsingUpBandwidth),
 		strconv.Itoa(server.MaxUnusedUpBandwidth),
-		config.DaemonServer.NetworkCardName)
+		config.DaemonServer.NetworkCardName}
+	cmd := exec.Command("/bin/bash", args...)
+	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with flush network:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
+		OutputErrReason(output)
 	}
 }
 func (server *ServerLocal) performanceFlush() {
@@ -101,16 +107,40 @@ func (server *ServerLocal) performanceFlush() {
 	server.initCgroup()
 }
 func (server *ServerLocal) cgroupDel() {
-	cmd := exec.Command("/bin/bash",
+
+
+	if _,err := os.Stat("../sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID));err != nil{
+		colorlog.LogPrint("Cgroup not exists.No need to del. ")
+		return
+	}
+	args := []string{
 		"../cgroup/cg.sh",
 		"cg",
 		"del",
-		"server"+strconv.Itoa(server.ID))
+		"server"+strconv.Itoa(server.ID),
+	}
+	cmd := exec.Command("/bin/bash",args...)
+	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with del cgroup:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
+		OutputErrReason(output)
 	}
+	colorlog.LogPrint("Del cgroup done.")
+}
+
+func dumpCommand(args []string) string{
+	s := ""
+	for _,v := range args {
+		s += fmt.Sprint(v + " ")
+	}
+	return s
+}
+func OutputErrReason(output []byte){
+	colorlog.LogPrint("Reason:")
+	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----",colorlog.FR_RED))
+	fmt.Println(colorlog.ColorSprint(string(output),colorlog.FR_RED))
+	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----",colorlog.FR_RED))
 }

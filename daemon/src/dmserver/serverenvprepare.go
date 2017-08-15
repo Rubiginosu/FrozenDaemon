@@ -41,7 +41,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-			colorlog.LogPrint("Reaseon:" + string(output))
+			OutputErrReason(output)
 			return errors.New("Error with dd output loop file." + err.Error())
 		}
 		colorlog.LogPrint("Done.")
@@ -52,7 +52,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		output, err2 := cmd2.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err2.Error()))
-			colorlog.LogPrint("Reaseon:" + string(output))
+			OutputErrReason(output)
 
 			return errors.New("Error with mkfs.ext4:" + err2.Error())
 		}
@@ -72,7 +72,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		output3, err3 := cmd3.CombinedOutput()
 		if err3 != nil && strings.Index(string(output3), "is already mounted") <= 0 {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
-			colorlog.LogPrint("Reaseon:" + string(output3))
+			OutputErrReason(output3)
 			//return errors.New("Error with mounting loop file:"+err.Error())
 		}
 	}
@@ -85,13 +85,13 @@ func (server *ServerLocal) EnvPrepare() error {
 		strconv.Itoa(server.MaxUnusedUpBandwidth),
 		config.DaemonServer.NetworkCardName,
 	}
+	colorlog.LogPrint("Running command to add network: " + dumpCommand(networkArgs))
 	cmdNetwork := exec.Command("/bin/bash", networkArgs...)
 	cmdNetwork.Env = os.Environ()
-
 	output, err := cmdNetwork.CombinedOutput()
 	if err != nil {
 		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-		colorlog.LogPrint("Reaseon:" + string(output))
+		OutputErrReason(output)
 		colorlog.PromptPrint("This server's source may not valid")
 	}
 	execConfig, err3 := server.loadExecutableConfig()
@@ -110,7 +110,7 @@ func (server *ServerLocal) EnvPrepare() error {
 				output, err := cmd.CombinedOutput()
 				if err != nil {
 					colorlog.ErrorPrint(errors.New("Error with copy files:" + err.Error()))
-					colorlog.LogPrint("Reason:" + string(output))
+					OutputErrReason(output)
 					colorlog.PointPrint("Server starting transaction has been stopped.")
 					return errors.New("Error with copy files:" + err.Error())
 				}
