@@ -18,7 +18,7 @@ import (
 var config conf.Cnf
 var serverSaved = make(map[int]*ServerLocal, 0)
 var servers = make(map[int]*ServerRun, 0)
-var requestHandlers = make(map[string]*[]func(Request) Response,0)
+var requestHandlers = make(map[string]*[]func([]byte) []byte,0)
 func connErrorToExit(errorInfo string, c net.Conn) {
 	res, _ := json.Marshal(Response{-1, errorInfo})
 	c.Write(res)
@@ -59,9 +59,17 @@ func handleConnection(c net.Conn) {
 func handleRequest(request Request) Response {
 	// Received ? Who cares?
 	colorlog.PointPrint("Received " + colorlog.ColorSprint(request.Method, colorlog.FR_GREEN) + " Command!")
-	if functions,ok := requestHandlers[request.Message] ;ok {
+	if functions,ok := requestHandlers[request.Method];ok {
+		colorlog.LogPrint("Calling plugin functions")
 		for _,function := range *functions{
-			return function(request)
+			resp := Response{}
+			b,_ := json.Marshal(request)
+			err := json.Unmarshal(function(b),&resp)
+			if err != nil {
+				colorlog.ErrorPrint(errors.New("Error occurred at dmserver.handle during unmarshall json : "+ err.Error()))
+				return Response{-1,"Plugin override error."}
+			}
+			return resp
 		}
 	}
 	switch request.Method {

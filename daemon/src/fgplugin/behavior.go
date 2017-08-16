@@ -14,8 +14,9 @@ const (
 
 var disabled = make([]func(), 0)
 
-func (b *Behavior) handle(p plugin.Plugin) {
+func (b *Behaviors) handle(p plugin.Plugin) {
 	enabled, err := p.Lookup(b.OnEnabled)
+	colorlog.LogPrint(b.OnEnabled)
 	if err != nil {
 		colorlog.ErrorPrint(errors.New(ErrGlobal + ErrNoEnabledFuncFind))
 	}
@@ -23,13 +24,13 @@ func (b *Behavior) handle(p plugin.Plugin) {
 		f()
 	}
 	for _,v := range b.RequestHandler{
-		function,err := p.Lookup(v.functionName)
+		funcSymbol,err := p.Lookup(v.FunctionName)
 		if err != nil {
-			colorlog.LogPrint("Load behavior: " + v.requestName + " Error!")
+			colorlog.ErrorPrint(errors.New("Load behavior: " + v.RequestName + " Error!"))
 			continue
 		}
-		if f,ok := function.(func(dmserver.Request) dmserver.Response);ok {
-			dmserver.HandleRequestIntoFunc(f,v.requestName)
+		if f,ok := funcSymbol.(func([]byte)[]byte);ok {
+			dmserver.HandleRequestIntoFunc(f,v.RequestName)
 		}
 
 	}

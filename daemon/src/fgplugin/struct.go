@@ -1,17 +1,13 @@
 package fgplugin
 
-type Behavior struct {
+type Behaviors struct {
 	OnEnabled      string
 	OnDisabled     string
 	RequestHandler []RequestHandler
 }
 
-type eventHandler struct {
-	event   int
-	handler string
-}
 
 type RequestHandler struct {
-	requestName  string
-	functionName string
+	RequestName  string
+	FunctionName string
 }

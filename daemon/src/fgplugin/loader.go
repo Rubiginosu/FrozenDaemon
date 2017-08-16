@@ -5,12 +5,14 @@ import (
 	"errors"
 	"os"
 	"plugin"
+	"encoding/json"
 )
 
 const (
 	ErrPlugOpenErr                       = "open plugin file "
 	ErrPluginBehaviorNotFound            = "plugin behavior not defined at "
 	ErrPluginBehaviorNotDefinedCorrectly = "plugin behavior not defined correctly "
+	ErrPluginBehaviorJsonUnmarshal = "plugin behavior returns not correct json format bytes :"
 )
 
 func loader(info os.FileInfo, path string) bool {
@@ -25,13 +27,16 @@ func loader(info os.FileInfo, path string) bool {
 		colorlog.ErrorPrint(errors.New(ErrGlobal + ErrPluginBehaviorNotFound + pluginPath))
 		return false
 	}
-	if f, ok := behavior.(func() Behavior); ok {
-		if !ok {
-			f()
-			return true
+	if f, ok := behavior.(func() []byte); ok {
+		pluginBehave := Behaviors{}
+		err := json.Unmarshal(f(),&pluginBehave)
+		if err != nil {
+			colorlog.ErrorPrint(errors.New(ErrGlobal + ErrPluginBehaviorJsonUnmarshal + err.Error()))
 		}
-		colorlog.ErrorPrint(errors.New(ErrGlobal + ErrPluginBehaviorNotDefinedCorrectly + pluginPath))
-		return false
+		pluginBehave.handle(*plg)
+		return true
+
 	}
+	colorlog.ErrorPrint(errors.New(ErrGlobal + ErrPluginBehaviorNotDefinedCorrectly + pluginPath))
 	return false
 }

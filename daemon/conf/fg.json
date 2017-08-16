@@ -7,13 +7,14 @@
 	},
 	"DaemonServer": {
 		"Port": 52023,
-		"VerifyCode": "Ihm7W7oH46rYmtCH4aTAJYS2XYCYY8VCxt6QHPKEVV9mAaCC5UhDKSNkVuwBGIsr",
-		"DefaultBufLength": 1024,
+		"VerifyCode": "gqf5JeYiGHY4ew5qF2biOWxnZORdYs0wlBepYSelG6sNlUTxHttQvOLjiwdDDEth",
+		"DefaultBufLength": 256,
 		"ValidationKeyOutDateTimeSeconds": 20,
 		"UserId": 100000,
 		"HardDiskMethod": "Link",
 		"BlockDeviceMajMim": "8:0",
-		"NetworkCardName": "wlp9s0"
+		"NetworkCardName": "wlp9s0",
+		"PluginPath": "../plugins"
 	},
 	"FileTransportServer": {
 		"Port": 52025

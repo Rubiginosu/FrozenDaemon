@@ -34,7 +34,9 @@ func LoadPlugin(path string) {
 	infoSlice, _ := ioutil.ReadDir(path)
 	for _, v := range infoSlice {
 		if !v.IsDir() {
-			loader(v, path)
+			if !loader(v, path) {
+				colorlog.ErrorPrint(errors.New("Loading plugin error"))
+			}
 		}
 	}
 }
