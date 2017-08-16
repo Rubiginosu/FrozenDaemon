@@ -2,7 +2,7 @@
 本包提供了一些关于用户的ValidationKey的一些函数
 用户在直连daemon时，使用这个key进行鉴权
 鉴权Key由Panel进行指定和分发
- */
+*/
 package auth
 
 import "time"

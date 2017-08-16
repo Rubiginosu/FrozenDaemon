@@ -167,6 +167,7 @@ class FrozenGo
     /**
      * @param $id
      * 服务器id
+     * @return object
      */
     public function getServerConfig($id)
     {
@@ -189,7 +190,12 @@ class FrozenGo
      *      ]
      * ]
      * AttrName和AttrValue用于帮助Daemon解析
-     * @return mixed|string
+     * ----------------------------------------------------
+     *      支持的标记 详细参见 源码/dmserver/struct
+     *
+     *
+     * @return object
+     * 返回成功更新了的Attr的数目或者错误信息,储存在Object对象Message字段中
      */
     public function setServerConfig($id, $elements)
     {
@@ -203,7 +209,7 @@ class FrozenGo
      * 输入的命令，如stop
      * say Poi!
      * 都可以,随便大家玩
-     * @return mixed|string
+     * @return object
      * 返回daemon的提示结果
      */
     public function inputToServer($id,$message){
@@ -214,6 +220,7 @@ class FrozenGo
      * 获取在线的人
      * @param $id
      * 服务器id
+     * @return object
      */
     public function getOnlinePlayers($id){
         $result = $this->SockResult("GetServerPlayers",$id);
@@ -227,7 +234,7 @@ class FrozenGo
      * key，字符串
      * @param $id
      * id 对应服务器id整数
-     * @return mixed|string
+     * @return object
      * 返回结果对象
      */
     public function keyRegister($key,$id){
@@ -240,21 +247,10 @@ class FrozenGo
      * 要删除的id
      * @param $file
      * 文件路径及其名称
+     * @return object
      */
     public function deleteServerFile($id,$file){
         return $this->SockResult("DeleteServerFile",$id,$file);
-    }
-
-    /**
-     * 获得 %FGO%/servers/server$id/serverData/$path 目录下的所有文件及其信息
-     * @param $id
-     * @param $path
-     * @return mixed|string
-     */
-    public function getServerFiles($id,$path){
-        $result = $this->SockResult("GetServerDir",$id);
-        $result->Message = json_decode($result->Message);
-        return $result;
     }
 
     private function SockResult($method, $operateId = 0, $message = "")

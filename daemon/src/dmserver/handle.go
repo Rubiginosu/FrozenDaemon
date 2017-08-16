@@ -15,10 +15,10 @@ import (
 	"time"
 )
 
-var config conf.Config
+var config conf.Cnf
 var serverSaved = make(map[int]*ServerLocal, 0)
 var servers = make(map[int]*ServerRun, 0)
-
+var requestHandlers = make(map[string]*[]func(Request) Response,0)
 func connErrorToExit(errorInfo string, c net.Conn) {
 	res, _ := json.Marshal(Response{-1, errorInfo})
 	c.Write(res)
@@ -57,7 +57,13 @@ func handleConnection(c net.Conn) {
 
 // 命令处理器
 func handleRequest(request Request) Response {
-	colorlog.PointPrint("Recevied " + colorlog.ColorSprint(request.Method, colorlog.FR_GREEN) + " Command!")
+	// Received ? Who cares?
+	colorlog.PointPrint("Received " + colorlog.ColorSprint(request.Method, colorlog.FR_GREEN) + " Command!")
+	if functions,ok := requestHandlers[request.Message] ;ok {
+		for _,function := range *functions{
+			return function(request)
+		}
+	}
 	switch request.Method {
 
 	case "List":
@@ -182,13 +188,6 @@ func handleRequest(request Request) Response {
 			return Response{-1, err2.Error()}
 		}
 		return Response{0, fmt.Sprintf("OK,Setted %d element(s)", nums)}
-	case "GetServerConfig":
-		// 获取服务器信息（已保存信息）
-		if server, ok := serverSaved[request.OperateID]; ok {
-			b, _ := json.Marshal(server)
-			return Response{0, fmt.Sprintf("%s", b)}
-		}
-
 	case "InputLineToServer":
 		// 此方法将一行指令输入至服务端
 		if server, ok := servers[request.OperateID]; ok {

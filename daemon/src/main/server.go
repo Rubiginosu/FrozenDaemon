@@ -1,14 +1,14 @@
 package main
 
 import (
+	"colorlog"
+	"dmserver"
 	"flag"
 	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"syscall"
-	"colorlog"
-	"dmserver"
 )
 
 //#include<unistd.h>
@@ -40,7 +40,7 @@ func main() {
 
 		os.Mkdir("/proc", 555)
 		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")
-		out,err := cmd.CombinedOutput()
+		out, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(err)
 			dmserver.OutputErrReason(out)

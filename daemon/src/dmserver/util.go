@@ -42,7 +42,7 @@ func (server *ServerLocal) initCgroup() {
 	args := []string{"../cgroup/cg.sh",
 		"cg",
 		"init",
-		"server"+strconv.Itoa(server.ID),
+		"server" + strconv.Itoa(server.ID),
 		strconv.Itoa(server.MaxCpuUtilizatioRate),
 		strconv.Itoa(server.MaxMem),
 		strconv.Itoa(server.MaxHardDiskReadSpeed),
@@ -50,7 +50,7 @@ func (server *ServerLocal) initCgroup() {
 		config.DaemonServer.BlockDeviceMajMim,
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1)}
 	// 当检测到cg目录不存在时，启动cg.init
-	cmd := exec.Command("/bin/bash",args...)
+	cmd := exec.Command("/bin/bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
@@ -72,7 +72,7 @@ func (server *ServerLocal) networkDel() {
 		"1",
 		"1",
 		config.DaemonServer.NetworkCardName}
-	cmd := exec.Command("/bin/bash",args...)
+	cmd := exec.Command("/bin/bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
@@ -108,8 +108,7 @@ func (server *ServerLocal) performanceFlush() {
 }
 func (server *ServerLocal) cgroupDel() {
 
-
-	if _,err := os.Stat("../sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID));err != nil{
+	if _, err := os.Stat("../sys/fs/cgroup/cpu/server" + strconv.Itoa(server.ID)); err != nil {
 		colorlog.LogPrint("Cgroup not exists.No need to del. ")
 		return
 	}
@@ -117,9 +116,9 @@ func (server *ServerLocal) cgroupDel() {
 		"../cgroup/cg.sh",
 		"cg",
 		"del",
-		"server"+strconv.Itoa(server.ID),
+		"server" + strconv.Itoa(server.ID),
 	}
-	cmd := exec.Command("/bin/bash",args...)
+	cmd := exec.Command("/bin/bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
 	cmd.Env = os.Environ()
 
@@ -131,16 +130,16 @@ func (server *ServerLocal) cgroupDel() {
 	colorlog.LogPrint("Del cgroup done.")
 }
 
-func dumpCommand(args []string) string{
+func dumpCommand(args []string) string {
 	s := ""
-	for _,v := range args {
+	for _, v := range args {
 		s += fmt.Sprint(v + " ")
 	}
 	return s
 }
-func OutputErrReason(output []byte){
+func OutputErrReason(output []byte) {
 	colorlog.LogPrint("Reason:")
-	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----",colorlog.FR_RED))
-	fmt.Println(colorlog.ColorSprint(string(output),colorlog.FR_RED))
-	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----",colorlog.FR_RED))
+	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----", colorlog.FR_RED))
+	fmt.Println(colorlog.ColorSprint(string(output), colorlog.FR_RED))
+	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----", colorlog.FR_RED))
 }

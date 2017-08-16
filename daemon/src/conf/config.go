@@ -2,7 +2,7 @@
 Powered by Axoford12
 Rubiginosu | Freeze Team
 本报提供了一些对于配置文件的生成和读取函数
- */
+*/
 package conf
 
 import (
@@ -36,7 +36,7 @@ const (
 	HDM_LINK  = "Link"
 )
 
-type Config struct {
+type Cnf struct {
 	ServerManager       serverManager
 	DaemonServer        DaemonServer
 	FileTransportServer FileTransportServer
@@ -51,6 +51,7 @@ type DaemonServer struct {
 	HardDiskMethod                  string
 	BlockDeviceMajMim               string
 	NetworkCardName                 string
+	PluginPath                      string
 }
 
 type serverManager struct {
@@ -64,32 +65,33 @@ type FileTransportServer struct {
 	Port int
 }
 
-func GetConfig(filename string) (Config, error) {
+func GetConfig(filename string) (Cnf, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return GenerateConfig("../conf/fg.json"), nil
 
 	}
-	var v Config
+	var v Cnf
 	b, err2 := ioutil.ReadAll(file)
 	if err2 != nil {
-		return Config{}, err2
+		return Cnf{}, err2
 	}
 	json.Unmarshal(b, &v)
 	return v, nil
 }
+
 /**
 生成一个配置文件，并提示用户输入磁盘信息及网卡信息
- */
-func GenerateConfig(filepath string) Config {
-	var v Config = Config{
+*/
+func GenerateConfig(filepath string) Cnf {
+	var v Cnf = Cnf{
 		serverManager{"../data/servers.json", "../data/modules.json", 52024, "8:0"},
 		DaemonServer{52023,
 			RandString(64),
 			256,
 			20,
 			100000,
-			HDM_LINK, "", ""}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
+			HDM_LINK, "", "","../plugins"}, // 为何选择52023？俺觉得23号这个妹纸很可爱啊
 		FileTransportServer{52025},
 	}
 	file, err := os.Create(filepath)

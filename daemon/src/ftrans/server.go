@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func Start(configure conf.Config) {
+func Start(configure conf.Cnf) {
 	config = configure
 	// 配置conf
 

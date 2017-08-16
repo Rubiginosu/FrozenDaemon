@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-var config conf.Config
+var config conf.Cnf
 
 /*
 [WS统一注释原则]

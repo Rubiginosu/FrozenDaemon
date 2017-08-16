@@ -14,13 +14,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"fgplugin"
 )
 
 const VERSION string = "v0.3.1"
 const FILE_CONFIGURATION string = "../conf/fg.json"
 const UPDATE_CURRENT_VERSION = "https://raw.githubusercontent.com/Rubiginosu/frozen-go/master/VERSION"
 
-var config conf.Config
+var config conf.Cnf
 
 func main() {
 	if !(len(os.Args) > 1 && os.Args[1] == "-jump") {
@@ -43,7 +44,7 @@ func main() {
 			return
 		}
 	}
-	colorlog.LogPrint("Configuration get done")
+	colorlog.LogPrint("Cnf get done")
 	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {
 		colorlog.ErrorPrint(err)
@@ -59,6 +60,8 @@ func main() {
 			colorlog.LogPrint("Lastest Version")
 		}
 	}
+	colorlog.PointPrint("Loading plugins")
+	fgplugin.LoadPlugin(config.DaemonServer.PluginPath)
 	colorlog.PointPrint("Starting Server Manager.")
 	go dmserver.StartDaemonServer(config)
 	go ftrans.Start(config)
