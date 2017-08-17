@@ -61,9 +61,6 @@ func (server *ServerLocal) Start() error {
 		"-cmd=" + execConf.Command,
 		"-sid=" + strconv.Itoa(server.ID),
 	}
-	if execConf.ProcDir {
-		commandArgs = append(commandArgs, "-proc")
-	}
 	cmd := exec.Command("./server", commandArgs...)
 	//#########Testing###########
 	stdoutPipe, err := cmd.StdoutPipe()

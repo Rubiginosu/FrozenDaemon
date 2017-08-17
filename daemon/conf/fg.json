@@ -8,10 +8,10 @@
 	"DaemonServer": {
 		"Port": 52023,
 		"VerifyCode": "gqf5JeYiGHY4ew5qF2biOWxnZORdYs0wlBepYSelG6sNlUTxHttQvOLjiwdDDEth",
-		"DefaultBufLength": 256,
+		"DefaultBufLength": 1024,
 		"ValidationKeyOutDateTimeSeconds": 20,
 		"UserId": 100000,
-		"HardDiskMethod": "Link",
+		"HardDiskMethod": "Mount",
 		"BlockDeviceMajMim": "8:0",
 		"NetworkCardName": "wlp9s0",
 		"PluginPath": "../plugins"

@@ -1,14 +1,12 @@
 package main
 
 import (
-	"colorlog"
-	"dmserver"
 	"flag"
 	"os"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"syscall"
+	"colorlog"
 )
 
 //#include<unistd.h>
@@ -23,12 +21,10 @@ func main() {
 	var (
 		uid     int    // 要运行这个的程序的身份uid，随便指定一个.
 		command string // command: ping www.baidu.com
-		proc    bool   // if proc -> mount /proc with "mount -t proc none /proc" in container
 		sid     int    // Server id ,write to cgroups .
 	)
 	flag.IntVar(&uid, "uid", 0, "uid for setuid command")
 	flag.StringVar(&command, "cmd", "", "Command to be run")
-	flag.BoolVar(&proc, "proc", true, " if true -> Mounting proc dir.")
 	flag.IntVar(&sid, "sid", 0, "The serverid 's config will be write with cgroups config")
 	flag.Parse()
 	// 命名空间
@@ -36,19 +32,10 @@ func main() {
 	root := "../servers/server" + strconv.Itoa(sid)
 	syscall.Chroot(root)
 
-	if proc {
-
-		os.Mkdir("/proc", 555)
-		cmd := exec.Command("/bin/mount", "-t", "proc", "none", "/proc")
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			colorlog.ErrorPrint(err)
-			dmserver.OutputErrReason(out)
-			return
-		}
+	err := os.Chdir("/serverData") // 都已经Chroot了，思想要开放....
+	if err != nil {
+		colorlog.ErrorPrint(err)
 	}
-
-	os.Chdir("serverData") // 都已经Chroot了，思想要开放....
 	err4 := syscall.Setgroups([]int{uid})
 	if err4 != nil {
 		panic(err4)
@@ -62,7 +49,14 @@ func main() {
 	// args[0] args[1] args[2] ....
 	commands := regexp.MustCompile(" +").Split(command, -1)
 	err5 := syscall.Exec(commands[0], commands, os.Environ()) // 鬼畜golang之特效
-	if err5 != nil {
+	//cmd := exec.Command(commands[0],commands[1:]...)
+	//out,err5 := cmd.CombinedOutput()
+	//if err5 != nil {
+	//	colorlog.ErrorPrint(err5)
+	//	colorlog.LogPrint(string(out))
+	//}
+	if err5 != nil{
+
 		panic(err5)
 	}
 }

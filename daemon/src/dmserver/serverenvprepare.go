@@ -69,12 +69,13 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.LogPrint("The [" + config.DaemonServer.HardDiskMethod + "] method will limit the hardDisk space,so mounting loop file now.")
 		colorlog.LogPrint("Mounting loop file")
 		cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+".loop", serverDataDir)
-		output3, err3 := cmd3.CombinedOutput()
-		if err3 != nil && strings.Index(string(output3), "is already mounted") <= 0 {
-			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
-			OutputErrReason(output3)
-			//return errors.New("Error with mounting loop file:"+err.Error())
-		}
+		//output3, err3 := cmd3.CombinedOutput()
+		//if err3 != nil && strings.Index(string(output3), "is already mounted") <= 0 {
+		//	colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
+		//	OutputErrReason(output3)
+		//	//return errors.New("Error with mounting loop file:"+err3.Error())
+		//}
+		AutoRunCmdAndOutputErr(cmd3,"initial cgroups")
 	}
 	networkArgs := []string{
 		"../cgroup/cg.sh",
@@ -87,38 +88,43 @@ func (server *ServerLocal) EnvPrepare() error {
 	}
 	colorlog.LogPrint("Running command to add network: " + dumpCommand(networkArgs))
 	cmdNetwork := exec.Command("/bin/bash", networkArgs...)
-	cmdNetwork.Env = os.Environ()
-	output, err := cmdNetwork.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-		OutputErrReason(output)
-		colorlog.PromptPrint("This server's source may not valid")
+	if !AutoRunCmdAndOutputErr(cmdNetwork,"add network(tc)"){
+		colorlog.PromptPrint("Server network bandwidth limit may invalid.")
 	}
+
+	colorlog.LogPrint("HardDisk Method is " + config.DaemonServer.HardDiskMethod)
 	execConfig, err3 := server.loadExecutableConfig()
 	if err3 != nil {
+		colorlog.ErrorPrint(err3)
 		return err3
 	}
+
 	switch config.DaemonServer.HardDiskMethod {
+
 	case conf.HDM_MOUNT:
+		for _,v := range execConfig.Link {
+			colorlog.LogPrint("Mounting Dir : " + v)
+			server.mountDir(v)
+		}
+		makeUserOwnedDir(serverDataDir + "/exec")
+		cmd := exec.Command("mount","-o","bind","../exec",serverDataDir+"/exec")
+		AutoRunCmdAndOutputErr(cmd,"mount dir file")
 	case conf.HDM_LINK:
 		err := server.linkDirs(execConfig)
 		return err
 	case conf.HDM_COPY:
 		for _, v := range execConfig.Link {
 			if _, dirExists := os.Stat(serverDataDir + "/" + v); dirExists != nil {
-				cmd := exec.Command("/bin/cp", "-R", v, serverDataDir+"/"+v)
-				output, err := cmd.CombinedOutput()
-				if err != nil {
-					colorlog.ErrorPrint(errors.New("Error with copy files:" + err.Error()))
-					OutputErrReason(output)
-					colorlog.PointPrint("Server starting transaction has been stopped.")
-					return errors.New("Error with copy files:" + err.Error())
+				cmd := exec.Command("cp", "-R", v, serverDataDir+"/"+v)
+				if !AutoRunCmdAndOutputErr(cmd,"Copy files error"){
+					return errors.New("Copy files error")
 				}
 			}
 
 		}
 		return nil
 	}
+	server.prepareVirtualEnv()
 	return errors.New("Unexpected error")
 
 }
@@ -191,4 +197,16 @@ func (server *ServerLocal) linkDirs(conf ExecConf) error {
 		}
 	}
 	return nil
+}
+func (s *ServerLocal)mountDir(dirname string){
+	target := "../servers/server" + strconv.Itoa(s.ID) + dirname
+	if _,err := os.Stat(target);err != nil{
+		if info,err := os.Stat(dirname);err == nil {
+			os.MkdirAll(target, info.Mode())
+		} else {
+			return
+		}
+	}
+	cmd := exec.Command("mount","-o","bind",dirname,target)
+	AutoRunCmdAndOutputErr(cmd,"mount dirs")
 }
