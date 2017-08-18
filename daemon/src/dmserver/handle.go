@@ -13,6 +13,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"utils"
+	"regexp"
 )
 
 var config conf.Cnf
@@ -248,6 +250,19 @@ func handleRequest(request Request) Response {
 			}
 
 		}
+	case "GetExecList":
+		info,err := ioutil.ReadDir("../exec")
+		if err != nil {
+			colorlog.ErrorPrint(err)
+			return Response{-1,"Reading dir :" + err.Error()}
+		}
+		result := make([]string,0)
+		for _,v := range info {
+			if !v.IsDir() && utils.CString(v.Name()).Contains(".json"){
+				result = append(result,regexp.MustCompile("\\.json$").ReplaceAllString(v.Name(),""))
+			}
+		}
+
 	}
 	return Response{
 		-1, "Unexpected err",

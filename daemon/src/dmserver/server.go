@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 	"conf"
+	"utils"
 )
 
 // 服务器状态码
@@ -158,7 +159,7 @@ func (server *ServerLocal) Delete() {
 	if config.DaemonServer.HardDiskMethod == conf.HDM_MOUNT {
 		colorlog.LogPrint("Umounting dirs.")
 		cmd := exec.Command("umount","-f",serverRunPath + "/*")
-		AutoRunCmdAndOutputErr(cmd,"umount dirs")
+		utils.AutoRunCmdAndOutputErr(cmd,"umount dirs")
 	}
 
 

@@ -2,13 +2,13 @@ package dmserver
 
 import (
 	"colorlog"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"utils"
 )
 
 /**
@@ -50,16 +50,9 @@ func (server *ServerLocal) initCgroup() {
 		config.DaemonServer.BlockDeviceMajMim,
 		strings.Replace(fmt.Sprintf("%4x", server.ID), " ", "0", -1)}
 	// 当检测到cg目录不存在时，启动cg.init
-	cmd := exec.Command("/bin/bash", args...)
+	cmd := exec.Command("bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
-	cmd.Env = os.Environ()
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-		OutputErrReason(output)
-		colorlog.PromptPrint("This server's source may not valid")
-	}
+	utils.AutoRunCmdAndOutputErr(cmd,"initial cgroup")
 	colorlog.LogPrint("Init cgroup done.")
 }
 
@@ -72,15 +65,9 @@ func (server *ServerLocal) networkDel() {
 		"1",
 		"1",
 		config.DaemonServer.NetworkCardName}
-	cmd := exec.Command("/bin/bash", args...)
+	cmd := exec.Command("bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
-	cmd.Env = os.Environ()
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with del network:" + err.Error()))
-		OutputErrReason(output)
-	}
+	utils.AutoRunCmdAndOutputErr(cmd,"delete network")
 }
 
 func (server *ServerLocal) networkFlush() {
@@ -92,15 +79,9 @@ func (server *ServerLocal) networkFlush() {
 		strconv.Itoa(server.MaxUsingUpBandwidth),
 		strconv.Itoa(server.MaxUnusedUpBandwidth),
 		config.DaemonServer.NetworkCardName}
-	cmd := exec.Command("/bin/bash", args...)
+	cmd := exec.Command("bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
-	cmd.Env = os.Environ()
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with flush network:" + err.Error()))
-		OutputErrReason(output)
-	}
+	utils.AutoRunCmdAndOutputErr(cmd,"flush network")
 }
 func (server *ServerLocal) performanceFlush() {
 	server.cgroupDel()
@@ -120,13 +101,7 @@ func (server *ServerLocal) cgroupDel() {
 	}
 	cmd := exec.Command("/bin/bash", args...)
 	colorlog.LogPrint("Running command:" + dumpCommand(args))
-	cmd.Env = os.Environ()
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error with del cgroup:" + err.Error()))
-		OutputErrReason(output)
-	}
+	utils.AutoRunCmdAndOutputErr(cmd,"delete cgroup")
 	colorlog.LogPrint("Del cgroup done.")
 }
 
@@ -137,20 +112,4 @@ func dumpCommand(args []string) string {
 	}
 	return s
 }
-func OutputErrReason(output []byte) {
-	colorlog.LogPrint("Reason:")
-	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----", colorlog.FR_RED))
-	fmt.Println(colorlog.ColorSprint(string(output), colorlog.FR_RED))
-	fmt.Println(colorlog.ColorSprint("-----ERROR_MESSAGE-----", colorlog.FR_RED))
-}
 
-func AutoRunCmdAndOutputErr(cmd *exec.Cmd,errorAt string) bool{
-	cmd.Env = os.Environ()
-	out,err := cmd.CombinedOutput()
-	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error occurred at " + errorAt + ": " + err.Error()))
-		OutputErrReason(out)
-		return false
-	}
-	return true
-}

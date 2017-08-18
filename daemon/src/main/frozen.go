@@ -19,14 +19,13 @@ import (
 
 const VERSION string = "v0.3.1"
 const FILE_CONFIGURATION string = "../conf/fg.json"
-const UPDATE_CURRENT_VERSION = "https://raw.githubusercontent.com/Rubiginosu/frozen-go/master/VERSION"
-
+const UPDATE_CURRENT_VERSION = "https://raw.githubusercontent.com/Rubiginosu/FrozenDaemon/master/VERSION"
 var config conf.Cnf
-
 func main() {
-	if !(len(os.Args) > 1 && os.Args[1] == "-jump") {
-		printInfo()
-	} // 如果需要调试本程序，那么加上-jump参数可以跳过打印.
+
+	if os.Getenv("FGO_DEBUG") != "Yes" {
+		banner()
+	}
 	if !isRoot() {
 		fmt.Println(colorlog.ColorSprint("Need root permission.", colorlog.FR_RED))
 		return
@@ -129,7 +128,7 @@ case $1 in
 	}
 }
 
-func printInfo() {
+func banner() {
 	fmt.Println(colorlog.ColorSprint(`
 
     ______                                ______

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"utils"
 )
 
 // 准备环境
@@ -41,7 +42,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
-			OutputErrReason(output)
+			utils.OutputErrReason(output)
 			return errors.New("Error with dd output loop file." + err.Error())
 		}
 		colorlog.LogPrint("Done.")
@@ -52,7 +53,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		output, err2 := cmd2.CombinedOutput()
 		if err != nil {
 			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err2.Error()))
-			OutputErrReason(output)
+			utils.OutputErrReason(output)
 
 			return errors.New("Error with mkfs.ext4:" + err2.Error())
 		}
@@ -75,7 +76,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		//	OutputErrReason(output3)
 		//	//return errors.New("Error with mounting loop file:"+err3.Error())
 		//}
-		AutoRunCmdAndOutputErr(cmd3,"initial cgroups")
+		utils.AutoRunCmdAndOutputErr(cmd3,"initial cgroups")
 	}
 	networkArgs := []string{
 		"../cgroup/cg.sh",
@@ -88,7 +89,7 @@ func (server *ServerLocal) EnvPrepare() error {
 	}
 	colorlog.LogPrint("Running command to add network: " + dumpCommand(networkArgs))
 	cmdNetwork := exec.Command("/bin/bash", networkArgs...)
-	if !AutoRunCmdAndOutputErr(cmdNetwork,"add network(tc)"){
+	if !utils.AutoRunCmdAndOutputErr(cmdNetwork,"add network(tc)"){
 		colorlog.PromptPrint("Server network bandwidth limit may invalid.")
 	}
 
@@ -108,7 +109,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		}
 		makeUserOwnedDir(serverDataDir + "/exec")
 		cmd := exec.Command("mount","-o","bind","../exec",serverDataDir+"/exec")
-		AutoRunCmdAndOutputErr(cmd,"mount dir file")
+		utils.AutoRunCmdAndOutputErr(cmd,"mount dir file")
 	case conf.HDM_LINK:
 		err := server.linkDirs(execConfig)
 		return err
@@ -116,7 +117,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		for _, v := range execConfig.Link {
 			if _, dirExists := os.Stat(serverDataDir + "/" + v); dirExists != nil {
 				cmd := exec.Command("cp", "-R", v, serverDataDir+"/"+v)
-				if !AutoRunCmdAndOutputErr(cmd,"Copy files error"){
+				if !utils.AutoRunCmdAndOutputErr(cmd,"Copy files error"){
 					return errors.New("Copy files error")
 				}
 			}
@@ -208,5 +209,5 @@ func (s *ServerLocal)mountDir(dirname string){
 		}
 	}
 	cmd := exec.Command("mount","-o","bind",dirname,target)
-	AutoRunCmdAndOutputErr(cmd,"mount dirs")
+	utils.AutoRunCmdAndOutputErr(cmd,"mount dirs")
 }

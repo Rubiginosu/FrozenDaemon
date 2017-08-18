@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"utils"
 )
 
 const (
@@ -64,6 +65,7 @@ type serverManager struct {
 type FileTransportServer struct {
 	Port int
 }
+
 
 func GetConfig(filename string) (Cnf, error) {
 	file, err := os.Open(filename)
@@ -166,6 +168,26 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 	}
 	s, _ := json.MarshalIndent(v, "", "\t")
 	file.Write(s)
+	colorlog.PromptPrint("Now installing cgroups")
+	cmd := exec.Command("uname","-a")
+	cmd.Env = os.Environ()
+	out,err := cmd.CombinedOutput()
+	if err != nil {
+		colorlog.ErrorPrint(errors.New("Error at conf/install cgroups conf"))
+		utils.OutputErrReason(out)
+	} else {
+		stringOut := utils.CString(out)
+		colorlog.LogPrint("Installing dependency")
+		cmd = &exec.Cmd{}
+		if stringOut.Contains("Ubuntu") || stringOut.Contains("Debian"){
+			colorlog.LogPrint("May your system is Ubuntu/Debian tissues")
+			cmd = exec.Command("apt-get","-y","install","cgroup-bin")
+		} else if stringOut.Contains("CentOS") || stringOut.Contains("Fedora"){
+			colorlog.LogPrint("May your system is CentOS/Fedora tissues")
+			cmd = exec.Command("yum","-y","install","libcgroup")
+		}
+
+	}
 
 	return v
 }
