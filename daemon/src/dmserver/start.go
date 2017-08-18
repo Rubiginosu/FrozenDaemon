@@ -16,7 +16,12 @@ import (
 )
 
 func StartDaemonServer(conf conf.Cnf) {
+
 	config = conf
+	if _,err := os.Stat(config.ServerManager.Servers);err != nil {
+		b,_ := json.Marshal(serverSaved)
+		ioutil.WriteFile(config.ServerManager.Servers,b,0755)
+	}
 	b, _ := ioutil.ReadFile(config.ServerManager.Servers)
 	go serverOutDateClearer()
 	go auth.Timer()

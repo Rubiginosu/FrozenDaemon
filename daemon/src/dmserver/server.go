@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+	"conf"
 )
 
 // 服务器状态码
@@ -149,8 +150,22 @@ func (server *ServerLocal) Delete() {
 	// 如果服务器仍然开启则先关闭服务器。
 	// 成功关闭后，请Golang拆迁队清理违章建筑
 	nowPath, _ := filepath.Abs(".")
+
+
+
 	serverRunPath := filepath.Clean(nowPath + "/../servers/server" + strconv.Itoa(server.ID))
+
+	if config.DaemonServer.HardDiskMethod == conf.HDM_MOUNT {
+		colorlog.LogPrint("Umounting dirs.")
+		cmd := exec.Command("umount","-f",serverRunPath + "/*")
+		AutoRunCmdAndOutputErr(cmd,"umount dirs")
+	}
+
+
 	os.RemoveAll(serverRunPath)
+	if config.DaemonServer.HardDiskMethod != conf.HDM_LINK {
+		os.Remove(serverRunPath + ".loop")
+	}
 	// 清理服务器所占的储存空间
 	// 违章搭建搞定以后，把这个记账本的东东也删掉
 	delete(serverSaved, server.ID)
@@ -181,7 +196,7 @@ func (e *ExecConf) getRegexps() (*regexp.Regexp, *regexp.Regexp, *regexp.Regexp)
 		colorlog.ErrorPrint(err2)
 		joinReg = regexp.MustCompile("(\\w+)\\[.+\\] logged in")
 	}
-	exitReg, err3 := regexp.Compile(e.PlayExitRegexp)
+	exitReg, err3 := regexp.Compile(e.PlayerExitRegexp)
 	if err3 != nil {
 		colorlog.ErrorPrint(err3)
 		exitReg = regexp.MustCompile("(\\w+) left the game")
