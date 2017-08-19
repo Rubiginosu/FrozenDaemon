@@ -129,15 +129,13 @@ class FrozenGo
     }
 
     /**
-     * @param $url
-     * 配置文件url
-     * @param $id
-     * 要读取的配置文件id
+     * @param $name
+     * 要安装的配置文件名称，如Nukkit
      * @return mixed|string
      */
-    public function execInstall($url, $id)
+    public function execInstall($name)
     {
-        return $this->SockResult("ExecInstall", $id, $url);
+        return $this->SockResult("ExecInstall", 0, $name);
 
     }
 
@@ -251,6 +249,16 @@ class FrozenGo
      */
     public function deleteServerFile($id,$file){
         return $this->SockResult("DeleteServerFile",$id,$file);
+    }
+
+    /**
+     * @return array
+     * 返回包含已经安装的exec列表的数组
+     */
+    public function getExecList(){
+        $result = $this->SockResult("GetExecList");
+        $result->Message = json_decode($result->Message);
+        return $result;
     }
 
     private function SockResult($method, $operateId = 0, $message = "")
