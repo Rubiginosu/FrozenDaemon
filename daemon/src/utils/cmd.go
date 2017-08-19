@@ -4,7 +4,6 @@ import (
 	"os/exec"
 	"os"
 	"colorlog"
-	"errors"
 	"fmt"
 )
 
@@ -12,7 +11,7 @@ func AutoRunCmdAndOutputErr(cmd *exec.Cmd,errorAt string) bool{
 	cmd.Env = os.Environ()
 	out,err := cmd.CombinedOutput()
 	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error occurred at " + errorAt + ": " + err.Error()))
+		colorlog.ErrorPrint(errorAt,err)
 		OutputErrReason(out)
 		return false
 	}

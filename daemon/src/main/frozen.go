@@ -12,14 +12,13 @@ import (
 	"os"
 	"os/user"
 	"strconv"
-	"strings"
 	"time"
 	"fgplugin"
 )
 
-const VERSION string = "v0.3.1"
+const VERSION string = "v1.0.0"
 const FILE_CONFIGURATION string = "../conf/fg.json"
-const UPDATE_CURRENT_VERSION = "https://raw.githubusercontent.com/Rubiginosu/FrozenDaemon/master/VERSION"
+const UPDATE_CURRENT_VERSION = "http://119.29.7.229/version"
 var config conf.Cnf
 func main() {
 
@@ -99,14 +98,14 @@ case $1 in
 	colorlog.LogPrint("Cnf get done")
 	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("checking update",err)
 	} else {
 		colorlog.LogPrint("Version Check done:")
-		if versionCode > 1 {
+		if versionCode < -1 {
 			colorlog.WarningPrint("|---Daemon out of date")
 			colorlog.WarningPrint("|---Your daemon need to be updated!")
 			return
-		} else if versionCode == 1 {
+		} else if versionCode == -1 {
 			colorlog.WarningPrint("Small bugs fixed,You choose to updated it or not.")
 		} else {
 			colorlog.LogPrint("Lastest Version")
@@ -187,23 +186,17 @@ func isRoot() bool {
 func checkUpdate() (int, error) {
 	colorlog.LogPrint("Starting Version check...")
 	colorlog.LogPrint("This may take more time..")
-	resp, err := http.Get(UPDATE_CURRENT_VERSION)
+	resp, err := http.Get(UPDATE_CURRENT_VERSION + "?v=" + VERSION)
 	if err != nil {
 		return -2, err
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	body = []byte(strings.TrimRight(string(body), "\n\r"))
-	nowVersion := []byte(VERSION)
-	if body[1] != nowVersion[1] {
-		return 3, nil
-	} else if body[3] != nowVersion[3] {
-		return 2, nil
-	} else if body[5] != body[5] {
-		return 1, nil
-	} else {
-		return 0, nil
+	result,err := strconv.Atoi(string(body))
+	if err != nil {
+		return -2,err
 	}
+	return result,nil
 	//return -2,errors.New("Unexpected error")
 }
 

@@ -15,6 +15,7 @@ import (
 	"time"
 	"utils"
 	"regexp"
+	"os/exec"
 )
 
 var config conf.Cnf
@@ -68,7 +69,7 @@ func handleRequest(request Request) Response {
 			b,_ := json.Marshal(request)
 			err := json.Unmarshal(function(b),&resp)
 			if err != nil {
-				colorlog.ErrorPrint(errors.New("Error occurred at dmserver.handle during unmarshall json : "+ err.Error()))
+				colorlog.ErrorPrint("dmserver.handle during unmarshall json : ",err)
 				return Response{-1,"Plugin override error."}
 			}
 			return resp
@@ -161,28 +162,28 @@ func handleRequest(request Request) Response {
 		return Response{0, "OK"}
 	case "ExecInstall":
 
-		colorlog.LogPrint("Try to auto install id:" + strconv.Itoa(request.OperateID))
-		colorlog.LogPrint("From " + request.Message)
-		conn, err := http.Get(request.Message + "?action=GetJar&JarID=" + strconv.Itoa(request.OperateID))
+		colorlog.LogPrint("Try to auto install " + request.Message)
+		conn, err := http.Get( "http://vae.fg.mcpe.cc/exec?name=" + request.Message + "&arch=" + getArch())
 		if err != nil {
-			fmt.Println("Get ExecInstallConfig error!")
 			return Response{-1, err.Error()}
 		}
 		defer conn.Body.Close()
-		respData, err2 := ioutil.ReadAll(conn.Body)
-		if err2 != nil {
+		respData, err := ioutil.ReadAll(conn.Body)
+		if err != nil {
 			fmt.Println("Read body error")
-			return Response{-1, err2.Error()}
+			return Response{-1, err.Error()}
+		}
+		var resp Response
+		err = json.Unmarshal(respData, &config)
+		if err != nil {
+			fmt.Println("Json Unmarshal error!")
+			return Response{-1, err.Error()}
+		}
+		if resp.Status != 0 {
+			return Response{-1, "return error:" + resp.Message}
 		}
 		var config ExecInstallConfig
-		err3 := json.Unmarshal(respData, &config)
-		if err2 != nil {
-			fmt.Println("Json Unmarshal error!")
-			return Response{-1, err3.Error()}
-		}
-		if !config.Success {
-			return Response{-1, "Get exec data error:" + config.Message}
-		}
+		err = json.Unmarshal([]byte(resp.Message),&config)
 		// 解析成功且没有错误
 		go install(config)
 		return Response{0, "OK,Installing"}
@@ -225,7 +226,7 @@ func handleRequest(request Request) Response {
 			if validateOperateDir("../servers/server"+strconv.Itoa(server.ID)+"/serverData/", request.Message) {
 				infos, err := ioutil.ReadDir("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
 				if err != nil {
-					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
+					colorlog.ErrorPrint("Server Reading dir: ID:" + strconv.Itoa(server.ID) ,err)
 					return Response{-1, "Reading Dir :" + err.Error()}
 				}
 				b, _ := json.Marshal(buildServerInfos(infos))
@@ -241,7 +242,7 @@ func handleRequest(request Request) Response {
 			if validateOperateDir("../servers/server"+strconv.Itoa(server.ID)+"/serverData/", request.Message) {
 				err := os.RemoveAll("../servers/server" + strconv.Itoa(server.ID) + "/serverData/" + request.Message)
 				if err != nil {
-					colorlog.ErrorPrint(errors.New("Server Reading dir error: ID:" + strconv.Itoa(server.ID) + " reason:" + err.Error()))
+					colorlog.ErrorPrint("Server Reading dir error: ID:" + strconv.Itoa(server.ID) ,err)
 					return Response{-1, "Reading Dir :" + err.Error()}
 				}
 				return Response{0, "Deleted dir."}
@@ -253,12 +254,14 @@ func handleRequest(request Request) Response {
 	case "GetExecList":
 		info,err := ioutil.ReadDir("../exec")
 		if err != nil {
-			colorlog.ErrorPrint(err)
+			colorlog.ErrorPrint("read exec path",err)
 			return Response{-1,"Reading dir :" + err.Error()}
 		}
 		result := make([]string,0)
 		for _,v := range info {
-			if !v.IsDir() && utils.CString(v.Name()).Contains(".json"){
+			s := v.Name()
+			cstr := utils.CString(s)
+			if !v.IsDir() && cstr.Contains(".json"){
 				result = append(result,regexp.MustCompile("\\.json$").ReplaceAllString(v.Name(),""))
 			}
 		}
@@ -345,4 +348,19 @@ func setServerConfigAll(attrs []ServerAttrElement, index int) (int, error) {
 func outputListOfServers() Response {
 	b, _ := json.Marshal(serverSaved)
 	return Response{0, string(b)}
+}
+
+func getArch() string {
+	cmd := exec.Command("uname","-a")
+	out,err := cmd.CombinedOutput()
+	if err != nil {
+		colorlog.ErrorPrint("run [uname -a]",err)
+		utils.OutputErrReason(out)
+	}
+	cstr := utils.CString(string(out))
+	if cstr.Contains("86_64"){
+		return "64"
+	} else {
+		return "32"
+	}
 }

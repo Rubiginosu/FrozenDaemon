@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"utils"
 )
 
 var config conf.Cnf
@@ -69,12 +70,12 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 		colorlog.FR_CYAN), "New Websocket UPLOAD client connected"+r.RemoteAddr)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("upgrading func",err)
 		return
 	}
 	_, message, err2 := conn.ReadMessage()
 	if err2 != nil {
-		colorlog.ErrorPrint(err2)
+		colorlog.ErrorPrint("reading message",err2)
 		conn.Close()
 		return
 	}
@@ -110,13 +111,13 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
 	_, message, err := conn.ReadMessage()
 	if err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("read message",err)
 		conn.Close()
 		return
 	}
 	name, mode, err2 := parseUploadMessage(message)
 	if err2 != nil {
-		colorlog.ErrorPrint(err2)
+		colorlog.ErrorPrint("parsing message",err2)
 		conn.WriteMessage(websocket.TextMessage, []byte(err2.Error()))
 		conn.Close()
 		return
@@ -132,7 +133,7 @@ func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
 
 	file, err3 := os.OpenFile(current, os.O_TRUNC|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 777)
 	if err3 != nil {
-		colorlog.ErrorPrint(err3)
+		colorlog.ErrorPrint("writing file",err3)
 		conn.WriteMessage(websocket.TextMessage, []byte(err3.Error()))
 		conn.Close()
 		return
@@ -142,7 +143,7 @@ func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if err.Error() != "websocket: close 1005 (no status)" {
-				colorlog.ErrorPrint(err)
+				colorlog.ErrorPrint("reading message",err)
 				return
 			} else {
 				colorlog.PointPrint("Websocket upload finished.")
@@ -152,7 +153,7 @@ func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
 		}
 		_, err2 := file.Write(message)
 		if err != nil {
-			colorlog.ErrorPrint(err2)
+			colorlog.ErrorPrint("writing message",err2)
 			conn.WriteMessage(websocket.TextMessage, []byte(err2.Error()))
 			conn.Close()
 			return
@@ -160,11 +161,10 @@ func receiveWriteUploadFile(conn *websocket.Conn, sid int) {
 		conn.WriteMessage(websocket.TextMessage, []byte("OK"))
 	}
 	file.Close()
-	cmd := exec.Command("/bin/chmod", string(mode), current)
-	colorlog.LogPrint("Running :/bin/chmod" + " " + string(mode) + " " + current)
-	err4 := cmd.Run()
-	if err4 != nil {
-		colorlog.ErrorPrint(err3)
+	cmd := exec.Command("chmod", string(mode), current)
+	colorlog.LogPrint("Running :chmod" + " " + string(mode) + " " + current)
+
+	if !utils.AutoRunCmdAndOutputErr(cmd,"run chmod") {
 		conn.WriteMessage(websocket.TextMessage, []byte(err3.Error()))
 		conn.Close()
 	}

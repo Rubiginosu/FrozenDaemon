@@ -34,7 +34,7 @@ func main() {
 
 	err := os.Chdir("/serverData") // 都已经Chroot了，思想要开放....
 	if err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("changing dir",err)
 	}
 	err4 := syscall.Setgroups([]int{uid})
 	if err4 != nil {

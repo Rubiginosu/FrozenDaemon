@@ -26,7 +26,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("upgrading handler",err)
 		return
 	}
 	defer c.Close()
@@ -37,7 +37,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// result == true  ->  add OutputMaps -> send messages
 	_, message, err2 := c.ReadMessage()
 	if err2 != nil {
-		colorlog.ErrorPrint(err2)
+		colorlog.ErrorPrint("reading message",err2)
 	}
 	sid := auth.VerifyKey(string(message)) // 强转String再传入Auth
 	if sid < 0 {

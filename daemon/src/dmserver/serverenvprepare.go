@@ -41,7 +41,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.LogPrint("Writing File with dd")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err.Error()))
+			colorlog.ErrorPrint("writing hardDisk loop file",err)
 			utils.OutputErrReason(output)
 			return errors.New("Error with dd output loop file." + err.Error())
 		}
@@ -52,7 +52,7 @@ func (server *ServerLocal) EnvPrepare() error {
 		colorlog.LogPrint("Done")
 		output, err2 := cmd2.CombinedOutput()
 		if err != nil {
-			colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err2.Error()))
+			colorlog.ErrorPrint("format loop file", err2)
 			utils.OutputErrReason(output)
 
 			return errors.New("Error with mkfs.ext4:" + err2.Error())
@@ -96,7 +96,7 @@ func (server *ServerLocal) EnvPrepare() error {
 	colorlog.LogPrint("HardDisk Method is " + config.DaemonServer.HardDiskMethod)
 	execConfig, err3 := server.loadExecutableConfig()
 	if err3 != nil {
-		colorlog.ErrorPrint(err3)
+		colorlog.ErrorPrint("load exec config ",err3)
 		return err3
 	}
 

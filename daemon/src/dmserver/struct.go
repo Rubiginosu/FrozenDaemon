@@ -23,8 +23,6 @@ type InterfaceRequest struct {
 
 type ExecInstallConfig struct {
 	Rely      []Module
-	Success   bool
-	Timestamp int
 	Url       string
 	StartConf ExecConf
 	Message   string

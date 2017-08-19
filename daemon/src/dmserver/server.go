@@ -3,7 +3,6 @@ package dmserver
 import (
 	"bufio"
 	"colorlog"
-	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
@@ -33,7 +32,7 @@ func (s *ServerRun) Close() {
 		var err error
 		execConf, err = server.loadExecutableConfig()
 		if err != nil {
-			colorlog.ErrorPrint(err)
+			colorlog.ErrorPrint("loading exec config",err)
 			return
 		}
 	}
@@ -98,7 +97,7 @@ func (server *ServerLocal) Start() error {
 	cmdCgroup.Env = os.Environ()
 	output, err4 := cmdCgroup.CombinedOutput()
 	if err4 != nil {
-		colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err4.Error()))
+		colorlog.ErrorPrint("initialing cgroups", err4)
 		colorlog.LogPrint("Reaseon:" + string(output))
 		colorlog.PromptPrint("This server's source may not valid")
 	}
@@ -189,17 +188,17 @@ func (s *ServerRun) getServerStopped() {
 func (e *ExecConf) getRegexps() (*regexp.Regexp, *regexp.Regexp, *regexp.Regexp) {
 	startReg, err := regexp.Compile(e.StartServerRegexp)
 	if err != nil {
-		colorlog.ErrorPrint(err)
+		colorlog.ErrorPrint("compiling start regexp",err)
 		startReg = regexp.MustCompile("Done \\(.+s\\)!") // 用户自己的表达式骚写时,打印错误信息并使用系统默认表达式(1.7.2 spigot)
 	}
 	joinReg, err2 := regexp.Compile(e.NewPlayerJoinRegexp)
 	if err2 != nil {
-		colorlog.ErrorPrint(err2)
+		colorlog.ErrorPrint("compiling NewPlayerJoin regexp",err2)
 		joinReg = regexp.MustCompile("(\\w+)\\[.+\\] logged in")
 	}
 	exitReg, err3 := regexp.Compile(e.PlayerExitRegexp)
 	if err3 != nil {
-		colorlog.ErrorPrint(err3)
+		colorlog.ErrorPrint("compiling player exit regexp",err3)
 		exitReg = regexp.MustCompile("(\\w+) left the game")
 	}
 	return startReg, joinReg, exitReg

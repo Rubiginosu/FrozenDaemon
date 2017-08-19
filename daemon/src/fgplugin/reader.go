@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ErrGlobal     = "Error occurred at package fgplugin : "
 	ErrOpenPath   = "opening path "
-	ErrPathNotDir = "path is not a directory"
+	ErrPathNotDir = "checking plugin path :not a directory"
+	ErrLoadPlugin = "loading plugins"
 )
 
 func LoadPlugin(path string) {
@@ -19,14 +19,14 @@ func LoadPlugin(path string) {
 
 	if err != nil {
 		// 打开目录出现错误，报错并结束程序
-		colorlog.ErrorPrint(errors.New(ErrGlobal + ErrOpenPath + err.Error()))
+		colorlog.ErrorPrint(ErrOpenPath,err)
 		dir.Close()
 		return
 	}
 	if info, err := dir.Stat(); err != nil {
 		if !info.IsDir() {
 			colorlog.LogPrint("Loading " + info.Name())
-			colorlog.ErrorPrint(errors.New(ErrGlobal + ErrPathNotDir))
+			colorlog.ErrorPrint(ErrPathNotDir,err)
 			dir.Close()
 			return
 		}
@@ -35,7 +35,7 @@ func LoadPlugin(path string) {
 	for _, v := range infoSlice {
 		if !v.IsDir() {
 			if !loader(v, path) {
-				colorlog.ErrorPrint(errors.New("Loading plugin error"))
+				colorlog.ErrorPrint(ErrLoadPlugin,errors.New(""))
 			}
 		}
 	}

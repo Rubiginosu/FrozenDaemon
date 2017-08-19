@@ -121,7 +121,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 		cmd.Env = os.Environ()
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
+			colorlog.ErrorPrint("runing command lsblk" , err)
 			colorlog.LogPrint("Reason:" + string(output))
 			os.Exit(-2) // 退出程序
 		}
@@ -148,7 +148,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 		cmd.Env = os.Environ()
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			colorlog.ErrorPrint(errors.New("Error occurred while run command lsblk. Error info:" + err.Error()))
+			colorlog.ErrorPrint("runing command lsblk",err)
 			colorlog.LogPrint("Reason:" + string(output))
 			os.Exit(-2) // 退出程序
 		}
@@ -173,7 +173,7 @@ sda      ` + colorlog.ColorSprint("8:0", colorlog.FR_CYAN) + `    0 931.5G  0 di
 	cmd.Env = os.Environ()
 	out,err := cmd.CombinedOutput()
 	if err != nil {
-		colorlog.ErrorPrint(errors.New("Error at conf/install cgroups conf"))
+		colorlog.ErrorPrint("installing cgroups conf",err)
 		utils.OutputErrReason(out)
 	} else {
 		stringOut := utils.CString(out)

@@ -22,11 +22,6 @@ func ColorSprint(message string, color int) string {
 	return "\033[1;" + strconv.Itoa(color) + "m" + message + "\033[0m"
 }
 
-// 错误
-func ErrorPrint(err error) {
-	fmt.Println(ColorSprint("[Error]"+err.Error(), FR_RED))
-}
-
 // 信息
 func LogPrint(message string) {
 	fmt.Print(ColorSprint("[Info]", FR_BLUE))
@@ -39,13 +34,16 @@ func WarningPrint(message string) {
 }
 
 // 操作点打印
-func PointPrint(message string) {
+func PointPrint(message... interface{}) {
 	fmt.Print(ColorSprint("[Point]", FR_PURPLE))
-	fmt.Println(message)
+	fmt.Println(message...)
 }
 
 // 提示信息打印
-func PromptPrint(message string) {
+func PromptPrint(message... interface{}) {
 	fmt.Print(ColorSprint("[Prompt]", FR_GREEN))
-	fmt.Println(message)
+	fmt.Println(message...)
+}
+func ErrorPrint(at string,err error){
+	fmt.Println(ColorSprint("[Error] Error occurred at "+fmt.Sprint(at," ") + err.Error(), FR_RED))
 }
