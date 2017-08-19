@@ -57,11 +57,15 @@ func (server *ServerLocal) Start() error {
 	if err0 != nil {
 		return err0
 	}
+	os.Mkdir("../servers/server" + strconv.Itoa(server.ID) + "/serverData",775)
+	os.Chown("../servers/server" + strconv.Itoa(server.ID) + "/serverData",config.DaemonServer.UserId,0)
+	command := regexp.MustCompile(" +").Split(execConf.Command,-1)
 	commandArgs := []string{
-		"-uid=" + strconv.Itoa(config.DaemonServer.UserId),
-		"-cmd=" + execConf.Command,
-		"-sid=" + strconv.Itoa(server.ID),
+		strconv.Itoa(config.DaemonServer.UserId),
+		"../servers/server" + strconv.Itoa(server.ID),
+		"/serverData",
 	}
+	commandArgs = append(commandArgs,command...)
 	cmd := exec.Command("./server", commandArgs...)
 	//#########Testing###########
 	stdoutPipe, err := cmd.StdoutPipe()

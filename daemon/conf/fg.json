@@ -7,11 +7,11 @@
 	},
 	"DaemonServer": {
 		"Port": 52023,
-		"VerifyCode": "6MmT57OPID7X459tTLzTLVH0omXgLctzs8cBbAW0nEaLhWrTpk33vhaIQu6Md5gr",
+		"VerifyCode": "B5Inr7RDZ6QfVbBKQgc6MqMqUqUClGScK75HavHmLU9yiXhVQsyzWBuAzRb6r79z",
 		"DefaultBufLength": 1024,
 		"ValidationKeyOutDateTimeSeconds": 20,
 		"UserId": 100000,
-		"HardDiskMethod": "Link",
+		"HardDiskMethod": "Mount",
 		"BlockDeviceMajMim": "8:0",
 		"NetworkCardName": "wlp9s0",
 		"PluginPath": "../plugins"

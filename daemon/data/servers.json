@@ -1,1 +1,16 @@
-{}
+{
+	"0": {
+		"ID": 0,
+		"Name": "Test",
+		"Executable": "Minecraft",
+		"Status": 0,
+		"MaxCpuUtilizatioRate": 1,
+		"MaxMem": 1024,
+		"MaxHardDiskCapacity": 40960,
+		"MaxHardDiskReadSpeed": 50,
+		"MaxHardDiskWriteSpeed": 50,
+		"MaxUnusedUpBandwidth": 100,
+		"MaxUsingUpBandwidth": 100,
+		"Expire": 1503158380
+	}
+}
