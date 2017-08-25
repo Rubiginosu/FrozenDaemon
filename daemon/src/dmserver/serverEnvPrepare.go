@@ -60,22 +60,11 @@ func (server *ServerLocal) EnvPrepare() error {
 
 	}
 	colorlog.LogPrint("Preparing server data dir.")
-	// 为挂载文件夹做好准备
-	//autoMakeDir(serverDataDir + "/execPath")
-	//execPath,_ := filepath.Abs("../exec")
-	//cmd2 := exec.Command("/bin/mount","-o","bind",execPath,serverDataDir + "/execPath")
-	//cmd2.Run()
 	// 挂载回环文件
 	if config.DaemonServer.HardDiskMethod != conf.HDM_LINK {
 		colorlog.LogPrint("The [" + config.DaemonServer.HardDiskMethod + "] method will limit the hardDisk space,so mounting loop file now.")
 		colorlog.LogPrint("Mounting loop file")
 		cmd3 := exec.Command("/bin/mount", "-o", "loop", serverDataDir+".loop", serverDataDir)
-		//output3, err3 := cmd3.CombinedOutput()
-		//if err3 != nil && strings.Index(string(output3), "is already mounted") <= 0 {
-		//	colorlog.ErrorPrint(errors.New("Error with init cgroups:" + err3.Error()))
-		//	OutputErrReason(output3)
-		//	//return errors.New("Error with mounting loop file:"+err3.Error())
-		//}
 		utils.AutoRunCmdAndOutputErr(cmd3,"initial cgroups")
 	}
 	networkArgs := []string{

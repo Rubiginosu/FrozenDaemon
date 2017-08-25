@@ -16,15 +16,33 @@ import (
 	"fgplugin"
 )
 
+/*
+VERSION定义了FrozenGo的当前版本
+ */
 const VERSION string = "v1.0.0"
+
+/*
+定义了项目的配置文件目录
+ */
 const FILE_CONFIGURATION string = "../conf/fg.json"
+
+/*
+版本检测地址.
+这是一个Golang写的服务器(by Axoford12),不要抱有任何幻想去日~,
+日进去算我输>.<
+ */
 const UPDATE_CURRENT_VERSION = "http://119.29.7.229/version"
+
+/*
+全局变量conf.
+ */
 var config conf.Cnf
 func main() {
-
+	// 检测是否有定义FGO_DEBUG变量,定义了就直接跳过Banner打印
 	if os.Getenv("FGO_DEBUG") != "Yes" {
 		banner()
 	}
+	// 检查是否为root
 	if !isRoot() {
 		fmt.Println(colorlog.ColorSprint("Need root permission.", colorlog.FR_RED))
 		return
@@ -95,7 +113,7 @@ case $1 in
 			return
 		}
 	}
-	colorlog.LogPrint("Cnf get done")
+	colorlog.LogPrint("Configuration file got.")
 	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {
 		colorlog.ErrorPrint("checking update",err)
@@ -108,9 +126,10 @@ case $1 in
 		} else if versionCode == -1 {
 			colorlog.WarningPrint("Small bugs fixed,You choose to updated it or not.")
 		} else {
-			colorlog.LogPrint("Lastest Version")
+			colorlog.LogPrint("Version up to date.")
 		}
 	}
+
 	colorlog.PointPrint("Loading plugins")
 	fgplugin.LoadPlugin(config.DaemonServer.PluginPath)
 	colorlog.PointPrint("Starting Server Manager.")
@@ -120,6 +139,7 @@ case $1 in
 	go dmserver.Webskt()
 	colorlog.PointPrint("Starting ValidationKeyUpdater.")
 	colorlog.LogPrint("Done,type \"?\" for help. ")
+	// 处理一些非常非常基本的指令,因为基本不用,所以并不是很想写这一块的内容
 	for {
 		var s string
 		fmt.Scanf("%s", &s)
