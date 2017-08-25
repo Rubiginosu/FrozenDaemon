@@ -1,0 +1,24 @@
+{
+    "name": "frozen-go/frozen-sdk",
+    "description": "FrozenGo 的 PHP Sdk",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Seth8277",
+            "email": "mail@imseth.cn",
+            "homepage": "https://imseth.cn"
+        },
+        {
+            "name": "Axoford12",
+            "email": "Unknown@Unknown.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "FrozenSdk\\": "src" }
+    },
+    "require": {
+        "php": ">=5.6.4",
+        "tightenco/collect": "^5.4"
+    }
+}
