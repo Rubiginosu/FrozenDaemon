@@ -6,7 +6,7 @@
  * Time: 下午9:34
  */
 
-namespace Seth8277\FrozenSdk\Exceptions;
+namespace FrozenSdk\Exceptions;
 
 
 use InvalidArgumentException;

@@ -1,6 +1,6 @@
 {
-    "name": "seth8277/frozen-sdk",
-    "description": "FrozenDaemon 的 PHP Sdk",
+    "name": "frozen-go/frozen-sdk",
+    "description": "FrozenGo 的 PHP Sdk",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -15,7 +15,7 @@
         }
     ],
     "autoload": {
-        "psr-4": { "Seth8277\\FrozenSdk\\": "src" }
+        "psr-4": { "FrozenSdk\\": "src" }
     },
     "require": {
         "php": ">=5.6.4",

@@ -6,11 +6,11 @@
  * Time: 下午8:55
  */
 
-namespace Seth8277\FrozenSdk;
+namespace FrozenSdk;
 
 use Illuminate\Support\Collection;
-use Seth8277\FrozenSdk\Exceptions\SocketConnectionFailed;
-use Seth8277\FrozenSdk\Exceptions\SocketCreationFailed;
+use FrozenSdk\Exceptions\SocketConnectionFailed;
+use FrozenSdk\Exceptions\SocketCreationFailed;
 
 class FrozenGo
 {
