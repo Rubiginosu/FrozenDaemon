@@ -1,11 +1,11 @@
 # FrozenGo Daemon 安装手册
 ## 安装依赖 (Daemon在安装时会自动尝试安装，若仍然提示限制无效，请手动安装该工具)
 1.cgroup
-debian/other:
+debian/ubuntu/other:
 ```bash
 apt-get -y install cgroup-bin
 ```
-centos:
+RedHat(CentOS,FedoraServer,RHEL):
 ```bash
 yum -y install libcgroup
 ```
