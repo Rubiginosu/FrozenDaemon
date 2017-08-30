@@ -186,7 +186,7 @@ func handleRequest(request Request) Response {
 		err = json.Unmarshal([]byte(resp.Message),&config)
 		// 解析成功且没有错误
 		go install(config)
-		return Response{0, "OK,Installing"}
+		return Response{0, "OK,installing"}
 
 	case "SetServerConfig":
 		var elements []ServerAttrElement

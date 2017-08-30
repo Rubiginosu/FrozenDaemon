@@ -116,7 +116,7 @@ case $1 in
 	colorlog.LogPrint("Configuration file got.")
 	colorlog.LogPrint("Checking Update")
 	if versionCode, err := checkUpdate(); err != nil {
-		colorlog.ErrorPrint("checking update",err)
+		colorlog.ErrorPrint("checking update...",err)
 	} else {
 		colorlog.LogPrint("Version Check done:")
 		if versionCode < -1 {
@@ -130,14 +130,14 @@ case $1 in
 		}
 	}
 
-	colorlog.PointPrint("Loading plugins")
+	colorlog.PointPrint("Loading plugins...")
 	fgplugin.LoadPlugin(config.DaemonServer.PluginPath)
-	colorlog.PointPrint("Starting Server Manager.")
+	colorlog.PointPrint("Starting Server Manager...")
 	go dmserver.StartDaemonServer(config)
 	go ftrans.Start(config)
-	colorlog.PointPrint("Starting websocket server")
+	colorlog.PointPrint("Starting websocket server...")
 	go dmserver.Webskt()
-	colorlog.PointPrint("Starting ValidationKeyUpdater.")
+	colorlog.PointPrint("Starting ValidationKeyUpdater...")
 	colorlog.LogPrint("Done,type \"?\" for help. ")
 	// 处理一些非常非常基本的指令,因为基本不用,所以并不是很想写这一块的内容
 	for {
@@ -205,7 +205,7 @@ func isRoot() bool {
 }
 func checkUpdate() (int, error) {
 	colorlog.LogPrint("Starting Version check...")
-	colorlog.LogPrint("This may take more time..")
+	colorlog.LogPrint("This may take more time...")
 	resp, err := http.Get(UPDATE_CURRENT_VERSION + "?v=" + VERSION)
 	if err != nil {
 		return -2, err

@@ -39,7 +39,7 @@ func (s *ServerRun) Close() {
 	colorlog.LogPrint("Closing command is" + execConf.StoppedServerCommand)
 	go time.AfterFunc(20*time.Second, func() {
 		// 杀死进程组.
-		colorlog.PointPrint("Timeout,Kill them.")
+		colorlog.PointPrint("Timeout,kill them.")
 		if serverSaved[s.ID].Status != 0 {
 			if s.Cmd.Process != nil {
 				syscall.Kill(s.Cmd.Process.Pid, syscall.SIGKILL)

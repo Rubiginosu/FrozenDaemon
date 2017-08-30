@@ -47,7 +47,7 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 			current := filepath.Clean(path + reqFile[0])
 			colorlog.LogPrint("Request file:" + current)
 			if strings.Index(current, path) < 0 {
-				w.Write([]byte("Permission denied."))
+				w.Write([]byte("Permission denied!"))
 				return
 			}
 			http.ServeFile(w, r, current)
