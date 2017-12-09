@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 	"fgplugin"
+	"C"
 )
 
 /*

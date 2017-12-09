@@ -265,6 +265,13 @@ func handleRequest(request Request) Response {
 				result = append(result,regexp.MustCompile("\\.json$").ReplaceAllString(v.Name(),""))
 			}
 		}
+		lang, err := json.Marshal(result)
+		if err == nil {
+			return Response{0, string(lang)}
+		}else{
+			fmt.Println("Json Unmarshal error!")
+			return Response{-1, err.Error()}
+		}
 
 	}
 	return Response{
