@@ -9,7 +9,7 @@
 ## 2. 安装 
 >本软件正在开发中，于7月16日开始原生Panel部分编写。<br />
 >daemon部分已经完成，如果您希望自己开发panel或内部测试daemon请查看[安装手册](https://github.com/Rubiginosu/frozen-go/blob/master/daemon/Manual.md)<br />
-## 3. 使用要求
+## 3. 使用要求(适用于官方Panel，第三方以作者要求为标准)
 >出于多方面考虑，以及多方妥协下的结果，我们对使用FrozenGo的用户有以下强制要求：<br />
 >服务器请务必预先安装：Apache2.\*或更高版本、Postgresql9.6.\*或更高版本、php7.\*、Composer<br />
 >~~禁止二次售卖、倒卖、以及通过出售本软件发生钱财交易的行为~~<br />
