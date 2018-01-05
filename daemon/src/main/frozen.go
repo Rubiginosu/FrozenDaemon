@@ -20,19 +20,14 @@ import (
 /*
 VERSION定义了FrozenGo的当前版本
  */
-const VERSION string = "v1.0.0"
+const VERSION string = "v1.0.1"
 
 /*
 定义了项目的配置文件目录
  */
 const FILE_CONFIGURATION string = "../conf/fg.json"
 
-/*
-版本检测地址.
-这是一个Golang写的服务器(by Axoford12),不要抱有任何幻想去日~,
-日进去算我输>.<
- */
-const UPDATE_CURRENT_VERSION = "http://119.29.7.229/version"
+
 
 /*
 全局变量conf.
@@ -115,22 +110,9 @@ case $1 in
 		}
 	}
 	colorlog.LogPrint("Configuration file got.")
-	colorlog.LogPrint("Checking Update")
-	if versionCode, err := checkUpdate(); err != nil {
-		colorlog.ErrorPrint("checking update...",err)
-	} else {
-		colorlog.LogPrint("Version Check done:")
-		if versionCode < -1 {
-			colorlog.WarningPrint("|---Daemon out of date")
-			colorlog.WarningPrint("|---Your daemon need to be updated!")
-			return
-		} else if versionCode == -1 {
-			colorlog.WarningPrint("Small bugs fixed,You choose to updated it or not.")
-		} else {
-			colorlog.LogPrint("Version up to date.")
-		}
-	}
-
+	colorlog.LogPrint("This version is:"+VERSION)
+	//去除了版本更新，不再会强制要求更新
+	//2018年1月进行了修改
 	colorlog.PointPrint("Loading plugins...")
 	fgplugin.LoadPlugin(config.DaemonServer.PluginPath)
 	colorlog.PointPrint("Starting Server Manager...")
@@ -161,6 +143,7 @@ func banner() {
 	`, colorlog.FR_CYAN))
 	time.Sleep(2 * time.Second)
 	fmt.Println("---------------------")
+	fmt.Println("Compliance with the MIT open source protocol...")
 	time.Sleep(100 * time.Microsecond)
 	fmt.Print("Powered by ")
 	for _, v := range []byte("Axoford12") {
@@ -204,7 +187,7 @@ func isRoot() bool {
 	}
 	return userId == 0
 }
-func checkUpdate() (int, error) {
+/*func checkUpdate() (int, error) {
 	colorlog.LogPrint("Starting Version check...")
 	colorlog.LogPrint("This may take more time...")
 	resp, err := http.Get(UPDATE_CURRENT_VERSION + "?v=" + VERSION)
@@ -220,6 +203,10 @@ func checkUpdate() (int, error) {
 	return result,nil
 	//return -2,errors.New("Unexpected error")
 }
+*/
+/*
+ 更新部分，1.0.1以后不再需要
+*/
 
 func checkEnv(){
 	os.MkdirAll("../plugins",755)
